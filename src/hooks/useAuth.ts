@@ -9,38 +9,34 @@ export const useAuth = () => {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    // Get initial session
-    const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user?.email === 'schifeling@gmail.com') {
-        setIsAdmin(true);
-      }
-      
-      setIsLoading(false);
-    };
+    let mounted = true;
 
-    getInitialSession();
-
-    // Listen for auth changes
+    // Listen for auth changes FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
+        if (!mounted) return;
+        
         setSession(session);
         setUser(session?.user ?? null);
-        
-        if (session?.user?.email === 'schifeling@gmail.com') {
-          setIsAdmin(true);
-        } else {
-          setIsAdmin(false);
-        }
-        
+        setIsAdmin(session?.user?.email === 'schifeling@gmail.com');
         setIsLoading(false);
       }
     );
 
-    return () => subscription.unsubscribe();
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return;
+      
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsAdmin(session?.user?.email === 'schifeling@gmail.com');
+      setIsLoading(false);
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string, linkedinProfile: string) => {
