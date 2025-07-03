@@ -2,10 +2,8 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, Users, Award } from "lucide-react";
-
 export const Home = () => {
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-primary-glow/5 to-accent/5">
         <div className="container mx-auto px-4 py-20 lg:py-32">
@@ -13,10 +11,8 @@ export const Home = () => {
             <h1 className="text-4xl lg:text-6xl font-bold bg-gradient-to-r from-primary via-primary-glow to-accent bg-clip-text text-transparent mb-6">
               Find Verified Reviews of the World's Best Bosses
             </h1>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Job seekers: Discover amazing managers before you apply. 
-              Hiring managers: Showcase your leadership to attract top talent.
-            </p>
+            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">Job seekers: Discover amazing managers before you apply. 
+Hiring managers: Showcase your leadership to attract top talent.</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="hero" size="xl" asChild>
                 <Link to="/nominate">Nominate a Best Boss</Link>
@@ -92,9 +88,7 @@ export const Home = () => {
                   <CheckCircle className="w-6 h-6 text-success mt-0.5" />
                   <div>
                     <h3 className="font-semibold mb-1">For Job Seekers</h3>
-                    <p className="text-muted-foreground">
-                      Find managers who invest in their team's growth before you apply
-                    </p>
+                    <p className="text-muted-foreground">Find managers who invest in their team's growth before you apply</p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
@@ -131,6 +125,5 @@ export const Home = () => {
           </div>
         </div>
       </section>
-    </div>
-  );
+    </div>;
 };
