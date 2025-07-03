@@ -11,7 +11,11 @@ export const Header = () => {
 
   const handleLogout = async () => {
     try {
-      await signOut();
+      const { error } = await signOut();
+      if (error) {
+        throw error;
+      }
+      
       toast({
         title: "Logged out successfully",
         description: "You have been signed out of your account.",
