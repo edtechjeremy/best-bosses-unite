@@ -10,35 +10,22 @@ export const Header = () => {
   const { toast } = useToast();
 
   const handleLogout = async () => {
-    console.log('Logout button clicked!');
-    console.log('Current user:', user);
-    console.log('SignOut function:', signOut);
+    const { error } = await signOut();
     
-    try {
-      console.log('Calling signOut...');
-      const { error } = await signOut();
-      console.log('SignOut result:', { error });
-      
-      if (error) {
-        throw error;
-      }
-      
-      console.log('SignOut successful, showing toast');
+    if (!error) {
       toast({
         title: "Logged out successfully",
-        description: "You have been signed out of your account.",
+        description: "You have been signed out.",
       });
-      
-      console.log('Navigating to home...');
-      navigate("/");
-    } catch (error) {
-      console.error('Logout error:', error);
+    } else {
       toast({
-        title: "Logout failed",
-        description: "There was an error signing you out. Please try again.",
+        title: "Logout failed", 
+        description: "There was an error signing you out.",
         variant: "destructive",
       });
     }
+    
+    navigate("/");
   };
 
   return (
