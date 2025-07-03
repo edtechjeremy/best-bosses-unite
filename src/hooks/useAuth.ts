@@ -71,27 +71,41 @@ export const useAuth = () => {
   };
 
   const signOut = async () => {
-    console.log('Signing out...');
+    console.log('Starting signout process...');
     
     try {
-      // Clear state immediately for instant UI feedback
+      const { error } = await supabase.auth.signOut({
+        scope: 'global'
+      });
+      
+      if (error) {
+        console.error('Signout error:', error);
+        // Even if there's an error, clear local state
+        setUser(null);
+        setSession(null);
+        setIsAdmin(false);
+        return { error };
+      }
+      
+      // Clear state after successful signout
       setUser(null);
       setSession(null);
       setIsAdmin(false);
       
-      // Then call supabase signout
-      const { error } = await supabase.auth.signOut();
+      console.log('Signout completed successfully');
       
-      if (error) {
-        console.error('Signout error:', error);
-        // If there's an error, we still want to clear the local state
-        // as the user has initiated a logout
-      }
+      // Force a page refresh to ensure clean state
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 100);
       
-      console.log('Signout completed');
-      return { error };
+      return { error: null };
     } catch (error: any) {
       console.error('Signout catch error:', error);
+      // Clear state even on error
+      setUser(null);
+      setSession(null);
+      setIsAdmin(false);
       return { error };
     }
   };

@@ -120,7 +120,9 @@ export const BossProfile = () => {
           }
         }
         
-        throw bossError;
+        // If we still can't find it, set boss to null but don't throw error
+        setBoss(null);
+        return;
       }
       
       // Get nominator profile for the boss
@@ -136,6 +138,7 @@ export const BossProfile = () => {
       });
     } catch (error) {
       console.error('Error fetching boss:', error);
+      setBoss(null);
     } finally {
       setLoading(false);
     }
@@ -143,74 +146,96 @@ export const BossProfile = () => {
 
   const handleShare = () => {
     const currentUrl = window.location.href;
-    const shareText = encodeURIComponent(`🏆 Congratulations to ${boss?.first_name} ${boss?.last_name} for being recognized as a Certified #BestBoss!\n\nWho's a manager who made a big difference in your career?\n\nGive 'em a little ❤️ today!`);
-    const shareUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${shareText}&url=${encodeURIComponent(currentUrl)}`;
+    const shareText = encodeURIComponent(`🏆 Congratulations to ${boss?.first_name} ${boss?.last_name} for being recognized as a Certified #BestBoss!\n\nWho's a manager who made a big difference in your career?\n\nGive 'em a little ❤️ today!\n\n${currentUrl}`);
+    const shareUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${shareText}`;
     window.open(shareUrl, '_blank');
   };
 
   const handleDownloadCertificate = () => {
-    // Create a styled certificate matching the website theme
+    // Create a premium, luxury certificate
     const canvas = document.createElement('canvas');
-    canvas.width = 1200;
-    canvas.height = 800;
+    canvas.width = 1400;
+    canvas.height = 1000;
     const ctx = canvas.getContext('2d')!;
     
-    // Background gradient (clean white to light gray)
-    const gradient = ctx.createLinearGradient(0, 0, 1200, 800);
-    gradient.addColorStop(0, '#ffffff');
-    gradient.addColorStop(1, '#f8fafc');
+    // Premium gradient background (professional blue to purple)
+    const gradient = ctx.createLinearGradient(0, 0, 1400, 1000);
+    gradient.addColorStop(0, '#3b82f6'); // Professional blue
+    gradient.addColorStop(0.5, '#6366f1'); // Purple undertones
+    gradient.addColorStop(1, '#8b5cf6'); // Purple
     ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, 1200, 800);
+    ctx.fillRect(0, 0, 1400, 1000);
     
-    // Primary border (professional blue with purple undertones)
-    ctx.strokeStyle = '#3b82f6';
-    ctx.lineWidth = 8;
-    ctx.strokeRect(40, 40, 1120, 720);
+    // Luxury border with multiple layers
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 12;
+    ctx.strokeRect(60, 60, 1280, 880);
     
-    // Secondary border
-    ctx.strokeStyle = '#e2e8f0';
+    ctx.strokeStyle = '#f97316'; // Warm orange accent
+    ctx.lineWidth = 6;
+    ctx.strokeRect(80, 80, 1240, 840);
+    
+    ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 2;
-    ctx.strokeRect(60, 60, 1080, 680);
+    ctx.strokeRect(100, 100, 1200, 800);
     
-    // Title
-    ctx.fillStyle = '#1e293b';
-    ctx.font = 'bold 64px Arial, sans-serif';
+    // Premium title with shadow
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 80px Georgia, serif';
     ctx.textAlign = 'center';
-    ctx.fillText('Certified Best Boss', 600, 160);
+    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetX = 4;
+    ctx.shadowOffsetY = 4;
+    ctx.fillText('CERTIFIED', 700, 240);
     
-    // Subtitle
-    ctx.font = '32px Arial, sans-serif';
-    ctx.fillStyle = '#64748b';
-    ctx.fillText('This is to certify that', 600, 240);
+    // "Best Boss" with luxury styling
+    ctx.font = 'bold 90px Georgia, serif';
+    const bestBossGradient = ctx.createLinearGradient(0, 280, 0, 360);
+    bestBossGradient.addColorStop(0, '#f97316'); // Warm orange
+    bestBossGradient.addColorStop(1, '#fb923c'); // Lighter orange
+    ctx.fillStyle = bestBossGradient;
+    ctx.fillText('BEST BOSS', 700, 340);
     
-    // Name with gradient (professional blue to purple)
-    const nameGradient = ctx.createLinearGradient(0, 280, 0, 340);
-    nameGradient.addColorStop(0, '#3b82f6');
-    nameGradient.addColorStop(1, '#8b5cf6');
-    ctx.fillStyle = nameGradient;
-    ctx.font = 'bold 52px Arial, sans-serif';
-    ctx.fillText(`${boss?.first_name} ${boss?.last_name}`, 600, 320);
+    // Elegant subtitle
+    ctx.font = '36px Georgia, serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.shadowBlur = 4;
+    ctx.fillText('This certificate is proudly presented to', 700, 420);
     
-    // Description
-    ctx.fillStyle = '#1e293b';
-    ctx.font = '28px Arial, sans-serif';
-    ctx.fillText('has been recognized as an outstanding leader by their team.', 600, 420);
+    // Boss name with premium styling
+    ctx.font = 'bold 72px Georgia, serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = 'rgba(247, 147, 22, 0.5)';
+    ctx.shadowBlur = 12;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.fillText(`${boss?.first_name} ${boss?.last_name}`, 700, 540);
     
-    // Industry and function
-    ctx.fillStyle = '#64748b';
-    ctx.font = '24px Arial, sans-serif';
-    ctx.fillText(`${boss?.industry} • ${boss?.function}`, 600, 480);
+    // Recognition text
+    ctx.font = '32px Georgia, serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.95)';
+    ctx.shadowColor = 'rgba(0,0,0,0.2)';
+    ctx.shadowBlur = 4;
+    ctx.fillText('in recognition of outstanding leadership', 700, 620);
+    ctx.fillText('and exceptional management excellence', 700, 670);
     
-    // Footer with accent color (warm orange)
+    // Premium footer with warm orange accent
     ctx.fillStyle = '#f97316';
-    ctx.font = 'bold 20px Arial, sans-serif';
-    ctx.fillText('Certified by BestBosses.org | Great Leaders, Verified.', 600, 600);
+    ctx.font = 'bold 24px Georgia, serif';
+    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+    ctx.shadowBlur = 4;
+    ctx.fillText('BESTBOSSES.ORG', 700, 780);
     
-    // Date
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '20px Arial, sans-serif';
+    ctx.font = '20px Georgia, serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.fillText('Great Leaders, Verified.', 700, 810);
+    
+    // Elegant date
+    ctx.font = '18px Georgia, serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
     const today = new Date();
-    ctx.fillText(`Issued: ${today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, 600, 640);
+    ctx.fillText(`Certified: ${today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, 700, 860);
     
     // Download
     const link = document.createElement('a');
@@ -220,7 +245,7 @@ export const BossProfile = () => {
     
     toast({
       title: "Certificate Downloaded!",
-      description: "Your Best Boss certificate has been saved to your downloads.",
+      description: "Your premium Best Boss certificate has been saved to your downloads.",
     });
   };
 
