@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 export const Login = () => {
   const [formData, setFormData] = useState({
@@ -14,16 +15,21 @@ export const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { signIn, isAdmin } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate login process
-    setTimeout(() => {
-      // Check if admin user
-      const isAdmin = formData.email === "schifeling@gmail.com";
-      
+    const { error } = await signIn(formData.email, formData.password);
+
+    if (error) {
+      toast({
+        title: "Login Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
       toast({
         title: "Login Successful!",
         description: `Welcome back${isAdmin ? ", Admin" : ""}!`,
@@ -31,8 +37,8 @@ export const Login = () => {
       
       // Navigate based on user type
       navigate(isAdmin ? "/admin" : "/directory");
-      setIsLoading(false);
-    }, 1000);
+    }
+    setIsLoading(false);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

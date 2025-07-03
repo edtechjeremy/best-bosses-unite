@@ -1,22 +1,14 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { LogIn, LogOut, User } from "lucide-react";
-import { useState } from "react";
-
-// Mock auth state - will be replaced with actual auth later
-const useAuth = () => {
-  const [user, setUser] = useState<{ email: string; isAdmin: boolean } | null>(null);
-  const login = (email: string, isAdmin = false) => setUser({ email, isAdmin });
-  const logout = () => setUser(null);
-  return { user, login, logout };
-};
+import { useAuth } from "@/hooks/useAuth";
 
 export const Header = () => {
-  const { user, logout } = useAuth();
+  const { user, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await signOut();
     navigate("/");
   };
 
@@ -45,7 +37,7 @@ export const Header = () => {
           >
             Directory
           </Link>
-          {user?.isAdmin && (
+          {isAdmin && (
             <Link
               to="/admin"
               className="text-foreground hover:text-primary transition-colors font-medium"
@@ -60,7 +52,7 @@ export const Header = () => {
             <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-2">
                 <User className="w-4 h-4" />
-                <span className="text-sm text-muted-foreground">{user.email}</span>
+                <span className="text-sm text-muted-foreground">{user?.email}</span>
               </div>
               <Button variant="ghost" size="sm" onClick={handleLogout}>
                 <LogOut className="w-4 h-4 mr-2" />

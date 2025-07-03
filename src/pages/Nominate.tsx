@@ -7,6 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const industries = [
   "Technology", "Finance", "Healthcare", "Education", "Marketing",
@@ -36,6 +38,7 @@ export const Nominate = () => {
   const [reviewCharCount, setReviewCharCount] = useState(0);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,15 +55,49 @@ export const Nominate = () => {
       return;
     }
 
-    // Simulate nomination submission
-    setTimeout(() => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to submit a nomination.",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('nominations')
+        .insert({
+          nominator_id: user.id,
+          boss_first_name: formData.firstName,
+          boss_last_name: formData.lastName,
+          company: formData.company,
+          location: formData.location,
+          industry: formData.industry,
+          function: formData.function,
+          email: formData.email,
+          linkedin_profile: formData.linkedinProfile,
+          review: formData.review,
+        });
+
+      if (error) throw error;
+
       toast({
         title: "Nomination Submitted!",
         description: "Thank you for your nomination. We'll review it and notify you once it's approved.",
       });
       navigate("/directory");
+    } catch (error: any) {
+      toast({
+        title: "Submission Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
