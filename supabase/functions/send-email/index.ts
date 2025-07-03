@@ -82,8 +82,8 @@ const handler = async (req: Request): Promise<Response> => {
         const bossLinkedinShareText = encodeURIComponent(`Happy to be nominated by ${data.nominatorName} as a #BestBoss.\n\nWho's a manager who made a big difference in your career?\n\n${data.bossProfileUrl}`);
         const bossLinkedinShareUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${bossLinkedinShareText}`;
         
-        // Create certificate download function that generates and downloads the premium certificate
-        const createCertificateDownloadFunction = () => {
+        // Create a direct certificate download function that works without authentication
+        const createCertificateFunction = () => {
           return `
             function downloadCertificate() {
               const canvas = document.createElement('canvas');
@@ -176,11 +176,13 @@ const handler = async (req: Request): Promise<Response> => {
               link.href = canvas.toDataURL('image/png', 1.0);
               link.click();
             }
-            downloadCertificate();
+            
+            // Auto-download when page loads
+            window.addEventListener('load', downloadCertificate);
           `;
         };
         
-        const certificateDownloadLink = `data:text/html;charset=utf-8,${encodeURIComponent(`
+        const certificateDownloadUrl = `data:text/html;charset=utf-8,${encodeURIComponent(`
           <!DOCTYPE html>
           <html>
           <head>
@@ -228,6 +230,7 @@ const handler = async (req: Request): Promise<Response> => {
                 font-weight: bold;
                 box-shadow: 0 4px 15px rgba(247, 147, 22, 0.3);
                 transition: all 0.3s ease;
+                margin: 10px;
               }
               .download-btn:hover {
                 background: #ea580c;
@@ -239,11 +242,11 @@ const handler = async (req: Request): Promise<Response> => {
           <body>
             <div class="container">
               <h1>🏆 Congratulations!</h1>
-              <p>Your premium Best Boss certificate is ready for download.</p>
-              <p>Click the button below to download your certificate:</p>
+              <p>Your premium Best Boss certificate is downloading automatically.</p>
+              <p>If the download doesn't start, click below:</p>
               <button class="download-btn" onclick="downloadCertificate()">Download Certificate</button>
             </div>
-            <script>${createCertificateDownloadFunction()}</script>
+            <script>${createCertificateFunction()}</script>
           </body>
           </html>
         `)}`;
@@ -260,7 +263,7 @@ const handler = async (req: Request): Promise<Response> => {
             <p>At BestBosses.org (the internet's only verified manager review site), we fundamentally believe the best bosses deserve to be recognized - and to get the best talent on their teams.</p>
             <p>So be sure to share your award today:</p>
             <div style="margin: 20px 0;">
-              <p><strong>1) <a href="${certificateDownloadLink}">Download Your Certificate</a></strong></p>
+              <p><strong>1) <a href="${certificateDownloadUrl}">Download Your Certificate</a></strong></p>
               
               <p><strong>2) <a href="${bossLinkedinShareUrl}">Post on LinkedIn</a></strong></p>
               

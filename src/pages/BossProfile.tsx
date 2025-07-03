@@ -120,7 +120,7 @@ export const BossProfile = () => {
           }
         }
         
-        // If we still can't find it, set boss to null but don't throw error
+        // If we still can't find it, set boss to null
         setBoss(null);
         return;
       }
@@ -152,7 +152,7 @@ export const BossProfile = () => {
   };
 
   const handleDownloadCertificate = () => {
-    // Create a premium, luxury certificate
+    // Create a premium, luxury certificate without company/location
     const canvas = document.createElement('canvas');
     canvas.width = 1400;
     canvas.height = 1000;
@@ -160,9 +160,9 @@ export const BossProfile = () => {
     
     // Premium gradient background (professional blue to purple)
     const gradient = ctx.createLinearGradient(0, 0, 1400, 1000);
-    gradient.addColorStop(0, '#3b82f6'); // Professional blue
-    gradient.addColorStop(0.5, '#6366f1'); // Purple undertones
-    gradient.addColorStop(1, '#8b5cf6'); // Purple
+    gradient.addColorStop(0, '#3b82f6');
+    gradient.addColorStop(0.5, '#6366f1');
+    gradient.addColorStop(1, '#8b5cf6');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 1400, 1000);
     
@@ -171,7 +171,7 @@ export const BossProfile = () => {
     ctx.lineWidth = 12;
     ctx.strokeRect(60, 60, 1280, 880);
     
-    ctx.strokeStyle = '#f97316'; // Warm orange accent
+    ctx.strokeStyle = '#f97316';
     ctx.lineWidth = 6;
     ctx.strokeRect(80, 80, 1240, 840);
     
@@ -192,8 +192,8 @@ export const BossProfile = () => {
     // "Best Boss" with luxury styling
     ctx.font = 'bold 90px Georgia, serif';
     const bestBossGradient = ctx.createLinearGradient(0, 280, 0, 360);
-    bestBossGradient.addColorStop(0, '#f97316'); // Warm orange
-    bestBossGradient.addColorStop(1, '#fb923c'); // Lighter orange
+    bestBossGradient.addColorStop(0, '#f97316');
+    bestBossGradient.addColorStop(1, '#fb923c');
     ctx.fillStyle = bestBossGradient;
     ctx.fillText('BEST BOSS', 700, 340);
     
@@ -270,6 +270,7 @@ export const BossProfile = () => {
     );
   }
 
+  // Show blurred content with access overlay for unauthorized users
   if (!user || !hasAccess) {
     return (
       <div className="min-h-screen bg-background py-8">
@@ -292,16 +293,66 @@ export const BossProfile = () => {
               {/* Blurred content preview */}
               <div className="filter blur-sm">
                 <CardHeader>
-                  <CardTitle className="text-3xl">{boss.first_name} {boss.last_name}</CardTitle>
-                  <CardDescription className="text-lg">{boss.company} • {boss.location}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex gap-2">
-                    <Badge variant="secondary">{boss.industry}</Badge>
-                    <Badge variant="secondary">{boss.function}</Badge>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle className="text-3xl bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
+                        {boss.first_name} {boss.last_name}
+                      </CardTitle>
+                      <CardDescription className="text-lg mt-2">
+                        {boss.company} • {boss.location}
+                      </CardDescription>
+                      <div className="flex gap-2 mt-4">
+                        <Badge variant="secondary">{boss.industry}</Badge>
+                        <Badge variant="secondary">{boss.function}</Badge>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm">
+                        <Share2 className="w-4 h-4 mr-2" />
+                        Share
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <Download className="w-4 h-4 mr-2" />
+                        Certificate
+                      </Button>
+                    </div>
                   </div>
-                  <div className="bg-muted p-4 rounded-lg">
-                    <p>{boss.review}</p>
+                </CardHeader>
+                
+                <CardContent className="space-y-8">
+                  <div>
+                    <h3 className="text-xl font-semibold mb-4">Contact Information</h3>
+                    <div className="space-y-2">
+                      <p className="text-muted-foreground">Email: {boss.email}</p>
+                      <a 
+                        href={boss.linkedin_profile} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline inline-flex items-center gap-1"
+                      >
+                        LinkedIn Profile <ExternalLink className="w-4 h-4" />
+                      </a>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-semibold mb-4">Why They're a Best Boss</h3>
+                    <div className="bg-gradient-to-r from-primary/5 to-primary-glow/5 p-6 rounded-lg border border-primary/10">
+                      <div className="text-lg leading-relaxed whitespace-pre-line">{boss.review}</div>
+                      <div className="mt-4 pt-4 border-t border-primary/10">
+                        <p className="text-sm text-muted-foreground">
+                          Nominated by{" "}
+                           <a 
+                             href={boss.profiles?.linkedin_profile || '#'} 
+                             target="_blank" 
+                             rel="noopener noreferrer"
+                             className="text-primary hover:underline"
+                           >
+                             {boss.profiles?.first_name} {boss.profiles?.last_name}
+                           </a>
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </div>

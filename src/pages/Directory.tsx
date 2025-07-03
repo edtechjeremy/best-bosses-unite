@@ -9,6 +9,70 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
+// Sample reviews to show what users are missing
+const sampleReviews = [
+  {
+    id: "sample-1",
+    first_name: "Sarah",
+    last_name: "Chen",
+    company: "Tech Innovations Inc",
+    location: "San Francisco, CA",
+    industry: "Technology",
+    function: "Engineering Manager",
+    review: "Sarah transformed our engineering culture by implementing mentorship programs and creating a psychologically safe environment where everyone could contribute their best ideas. She consistently advocated for her team's professional development and career growth."
+  },
+  {
+    id: "sample-2", 
+    first_name: "Michael",
+    last_name: "Rodriguez",
+    company: "Global Marketing Solutions",
+    location: "New York, NY",
+    industry: "Marketing",
+    function: "Creative Director",
+    review: "Michael has an incredible ability to balance creative vision with practical business needs. He empowers his team to take creative risks while providing the support and guidance needed to deliver exceptional results. His leadership style brings out the best in everyone."
+  },
+  {
+    id: "sample-3",
+    first_name: "Jennifer",
+    last_name: "Thompson",
+    company: "Healthcare Partners",
+    location: "Chicago, IL", 
+    industry: "Healthcare",
+    function: "Operations Manager",
+    review: "Jennifer leads with empathy and strategic thinking. During challenging times, she maintained team morale while driving operational excellence. She's the kind of manager who remembers your personal goals and actively helps you achieve them."
+  },
+  {
+    id: "sample-4",
+    first_name: "David",
+    last_name: "Park",
+    company: "Financial Advisors Group",
+    location: "Boston, MA",
+    industry: "Finance", 
+    function: "Senior Director",
+    review: "David's approach to leadership is both inspiring and practical. He sets clear expectations while giving his team the autonomy to innovate. His door is always open, and he genuinely cares about both professional development and work-life balance."
+  },
+  {
+    id: "sample-5",
+    first_name: "Lisa",
+    last_name: "Williams",
+    company: "Education Excellence",
+    location: "Austin, TX",
+    industry: "Education",
+    function: "Program Manager",
+    review: "Lisa has a unique talent for seeing potential in people and helping them realize it. She creates opportunities for growth, provides constructive feedback, and celebrates team achievements. Working for her was a career-defining experience."
+  },
+  {
+    id: "sample-6",
+    first_name: "Robert",
+    last_name: "Johnson",
+    company: "Manufacturing Solutions",
+    location: "Detroit, MI",
+    industry: "Manufacturing",
+    function: "Plant Manager", 
+    review: "Robert combines strong operational leadership with genuine care for his people. He implemented safety improvements, streamlined processes, and created a culture where everyone felt valued and heard. His leadership style is both effective and inspiring."
+  }
+];
+
 export const Directory = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const { user, isLoading: authLoading } = useAuth();
@@ -100,7 +164,7 @@ export const Directory = () => {
             <div className="relative">
               <div className="filter blur-sm pointer-events-none">
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {bosses.slice(0, 6).map(boss => (
+                  {sampleReviews.map(boss => (
                     <Card key={boss.id} className="hover:shadow-lg transition-shadow">
                       <CardContent className="p-6">
                         <h3 className="text-xl font-semibold mb-2">
