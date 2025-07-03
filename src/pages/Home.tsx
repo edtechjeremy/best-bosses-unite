@@ -11,7 +11,7 @@ export const Home = () => {
             <h1 className="text-4xl lg:text-6xl font-bold bg-gradient-to-r from-primary via-primary-glow to-accent bg-clip-text text-transparent mb-6">
               Find Verified Reviews of the World's Best Bosses
             </h1>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">Job seekers: Discover amazing managers before you apply.  
+            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">Job seekers: Discover amazing managers before you apply.   
 Hiring managers: Showcase your leadership to attract top talent.</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="hero" size="xl" asChild>
