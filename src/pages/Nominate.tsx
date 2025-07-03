@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -80,6 +79,7 @@ export const Nominate = () => {
     }
 
     try {
+      // Preserve line breaks by keeping the original text as-is
       const { error } = await supabase
         .from('nominations')
         .insert({
@@ -92,7 +92,7 @@ export const Nominate = () => {
           function: formData.function,
           email: formData.email,
           linkedin_profile: formData.linkedinProfile,
-          review: formData.review,
+          review: formData.review, // Keep original formatting
         });
 
       if (error) throw error;

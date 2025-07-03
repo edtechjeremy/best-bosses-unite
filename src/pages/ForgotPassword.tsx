@@ -1,17 +1,17 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
 
 export const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -23,13 +23,24 @@ export const ForgotPassword = () => {
         redirectTo: `${window.location.origin}/reset-password`,
       });
 
-      if (error) throw error;
-
-      setIsSubmitted(true);
-      toast({
-        title: "Reset link sent!",
-        description: "Check your email for the password reset link.",
-      });
+      if (error) {
+        // Handle rate limiting more gracefully
+        if (error.message.includes('rate limit') || error.message.includes('Email rate limit exceeded')) {
+          toast({
+            title: "Too Many Requests",
+            description: "Please wait a few minutes before requesting another password reset email.",
+            variant: "destructive",
+          });
+        } else {
+          throw error;
+        }
+      } else {
+        setEmailSent(true);
+        toast({
+          title: "Reset Email Sent!",
+          description: "Check your email for a link to reset your password.",
+        });
+      }
     } catch (error: any) {
       toast({
         title: "Error",
@@ -41,7 +52,7 @@ export const ForgotPassword = () => {
     }
   };
 
-  if (isSubmitted) {
+  if (emailSent) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="w-full max-w-md">
@@ -53,9 +64,12 @@ export const ForgotPassword = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="text-center">
-              <Link to="/login" className="text-primary hover:underline">
-                Back to Login
-              </Link>
+              <p className="text-sm text-muted-foreground mb-4">
+                Click the link in the email to reset your password. The link will expire in 1 hour.
+              </p>
+              <Button asChild variant="outline" className="w-full">
+                <Link to="/login">Back to Login</Link>
+              </Button>
             </CardContent>
           </Card>
         </div>
@@ -68,9 +82,9 @@ export const ForgotPassword = () => {
       <div className="w-full max-w-md">
         <Card>
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
+            <CardTitle className="text-2xl font-bold">Reset Your Password</CardTitle>
             <CardDescription>
-              Enter your email address and we'll send you a reset link
+              Enter your email address and we'll send you a link to reset your password
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -83,6 +97,7 @@ export const ForgotPassword = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  placeholder="Enter your email address"
                 />
               </div>
 
@@ -96,8 +111,11 @@ export const ForgotPassword = () => {
               </Button>
             </form>
 
-            <div className="mt-6 text-center text-sm">
-              <Link to="/login" className="text-primary hover:underline">
+            <div className="mt-4 text-center">
+              <Link 
+                to="/login" 
+                className="text-sm text-primary hover:underline"
+              >
                 Back to Login
               </Link>
             </div>

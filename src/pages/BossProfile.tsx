@@ -142,8 +142,9 @@ export const BossProfile = () => {
   };
 
   const handleShare = () => {
+    const currentUrl = window.location.href;
     const shareText = encodeURIComponent(`🏆 Congratulations to ${boss?.first_name} ${boss?.last_name} for being recognized as a Certified #BestBoss!\n\nWho's a manager who made a big difference in your career?\n\nGive 'em a little ❤️ today!`);
-    const shareUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${shareText}&url=${encodeURIComponent(window.location.href)}`;
+    const shareUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${shareText}&url=${encodeURIComponent(currentUrl)}`;
     window.open(shareUrl, '_blank');
   };
 
@@ -154,14 +155,14 @@ export const BossProfile = () => {
     canvas.height = 800;
     const ctx = canvas.getContext('2d')!;
     
-    // Background gradient (matching website theme)
+    // Background gradient (clean white to light gray)
     const gradient = ctx.createLinearGradient(0, 0, 1200, 800);
     gradient.addColorStop(0, '#ffffff');
     gradient.addColorStop(1, '#f8fafc');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 1200, 800);
     
-    // Primary border (matching website primary color)
+    // Primary border (professional blue with purple undertones)
     ctx.strokeStyle = '#3b82f6';
     ctx.lineWidth = 8;
     ctx.strokeRect(40, 40, 1120, 720);
@@ -182,10 +183,10 @@ export const BossProfile = () => {
     ctx.fillStyle = '#64748b';
     ctx.fillText('This is to certify that', 600, 240);
     
-    // Name with gradient
+    // Name with gradient (professional blue to purple)
     const nameGradient = ctx.createLinearGradient(0, 280, 0, 340);
     nameGradient.addColorStop(0, '#3b82f6');
-    nameGradient.addColorStop(1, '#1d4ed8');
+    nameGradient.addColorStop(1, '#8b5cf6');
     ctx.fillStyle = nameGradient;
     ctx.font = 'bold 52px Arial, sans-serif';
     ctx.fillText(`${boss?.first_name} ${boss?.last_name}`, 600, 320);
@@ -195,17 +196,19 @@ export const BossProfile = () => {
     ctx.font = '28px Arial, sans-serif';
     ctx.fillText('has been recognized as an outstanding leader by their team.', 600, 420);
     
-    // Company info
+    // Industry and function
     ctx.fillStyle = '#64748b';
     ctx.font = '24px Arial, sans-serif';
-    ctx.fillText(`${boss?.company} • ${boss?.location}`, 600, 480);
+    ctx.fillText(`${boss?.industry} • ${boss?.function}`, 600, 480);
     
-    // Footer
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '20px Arial, sans-serif';
+    // Footer with accent color (warm orange)
+    ctx.fillStyle = '#f97316';
+    ctx.font = 'bold 20px Arial, sans-serif';
     ctx.fillText('Certified by BestBosses.org | Great Leaders, Verified.', 600, 600);
     
     // Date
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '20px Arial, sans-serif';
     const today = new Date();
     ctx.fillText(`Issued: ${today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, 600, 640);
     
@@ -335,7 +338,7 @@ export const BossProfile = () => {
               <div>
                 <h3 className="text-xl font-semibold mb-4">Why They're a Best Boss</h3>
                 <div className="bg-gradient-to-r from-primary/5 to-primary-glow/5 p-6 rounded-lg border border-primary/10">
-                  <p className="text-lg leading-relaxed">{boss.review}</p>
+                  <div className="text-lg leading-relaxed whitespace-pre-line">{boss.review}</div>
                   <div className="mt-4 pt-4 border-t border-primary/10">
                     <p className="text-sm text-muted-foreground">
                       Nominated by{" "}

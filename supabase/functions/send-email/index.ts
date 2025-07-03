@@ -82,6 +82,103 @@ const handler = async (req: Request): Promise<Response> => {
         const bossLinkedinShareText = encodeURIComponent(`Happy to be nominated by ${data.nominatorName} as a #BestBoss.\n\nWho's a manager who made a big difference in your career?`);
         const bossLinkedinShareUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${bossLinkedinShareText}&url=${encodeURIComponent(data.bossProfileUrl)}`;
         
+        // Create certificate download function
+        const createCertificate = () => {
+          return `data:text/html;charset=utf-8,${encodeURIComponent(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <title>Download Certificate</title>
+              <style>
+                body { font-family: Arial, sans-serif; margin: 20px; }
+                .certificate { 
+                  width: 800px; 
+                  height: 600px; 
+                  border: 8px solid #3b82f6; 
+                  padding: 40px; 
+                  text-align: center; 
+                  background: linear-gradient(to bottom, #ffffff, #f8fafc);
+                  margin: 20px auto;
+                }
+                .title { font-size: 48px; font-weight: bold; color: #1e293b; margin-bottom: 20px; }
+                .subtitle { font-size: 24px; color: #64748b; margin-bottom: 30px; }
+                .name { font-size: 36px; font-weight: bold; background: linear-gradient(to right, #3b82f6, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 20px 0; }
+                .description { font-size: 20px; color: #1e293b; margin: 20px 0; }
+                .details { font-size: 18px; color: #64748b; margin: 20px 0; }
+                .footer { font-size: 16px; color: #f97316; font-weight: bold; margin-top: 40px; }
+                .date { font-size: 14px; color: #94a3b8; margin-top: 20px; }
+              </style>
+            </head>
+            <body>
+              <div class="certificate">
+                <div class="title">Certified Best Boss</div>
+                <div class="subtitle">This is to certify that</div>
+                <div class="name">${data.bossFirstName} ${data.bossLastName}</div>
+                <div class="description">has been recognized as an outstanding leader by their team.</div>
+                <div class="details">${data.industry} • ${data.function}</div>
+                <div class="footer">Certified by BestBosses.org | Great Leaders, Verified.</div>
+                <div class="date">Issued: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+              </div>
+              <script>
+                setTimeout(() => {
+                  const canvas = document.createElement('canvas');
+                  const ctx = canvas.getContext('2d');
+                  canvas.width = 1200;
+                  canvas.height = 800;
+                  
+                  // Background
+                  const gradient = ctx.createLinearGradient(0, 0, 1200, 800);
+                  gradient.addColorStop(0, '#ffffff');
+                  gradient.addColorStop(1, '#f8fafc');
+                  ctx.fillStyle = gradient;
+                  ctx.fillRect(0, 0, 1200, 800);
+                  
+                  // Border
+                  ctx.strokeStyle = '#3b82f6';
+                  ctx.lineWidth = 8;
+                  ctx.strokeRect(40, 40, 1120, 720);
+                  
+                  // Text
+                  ctx.fillStyle = '#1e293b';
+                  ctx.font = 'bold 64px Arial';
+                  ctx.textAlign = 'center';
+                  ctx.fillText('Certified Best Boss', 600, 160);
+                  
+                  ctx.font = '32px Arial';
+                  ctx.fillStyle = '#64748b';
+                  ctx.fillText('This is to certify that', 600, 240);
+                  
+                  ctx.fillStyle = '#3b82f6';
+                  ctx.font = 'bold 52px Arial';
+                  ctx.fillText('${data.bossFirstName} ${data.bossLastName}', 600, 320);
+                  
+                  ctx.fillStyle = '#1e293b';
+                  ctx.font = '28px Arial';
+                  ctx.fillText('has been recognized as an outstanding leader by their team.', 600, 420);
+                  
+                  ctx.fillStyle = '#64748b';
+                  ctx.font = '24px Arial';
+                  ctx.fillText('${data.industry} • ${data.function}', 600, 480);
+                  
+                  ctx.fillStyle = '#f97316';
+                  ctx.font = 'bold 20px Arial';
+                  ctx.fillText('Certified by BestBosses.org | Great Leaders, Verified.', 600, 600);
+                  
+                  ctx.fillStyle = '#94a3b8';
+                  ctx.font = '20px Arial';
+                  ctx.fillText('Issued: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}', 600, 640);
+                  
+                  const link = document.createElement('a');
+                  link.download = '${data.bossFirstName}-${data.bossLastName}-certificate.png';
+                  link.href = canvas.toDataURL();
+                  link.click();
+                }, 1000);
+              </script>
+            </body>
+            </html>
+          `)}`;
+        };
+        
         emailResponse = await resend.emails.send({
           from: "Best Bosses <info@bestbosses.org>",
           to: [to],

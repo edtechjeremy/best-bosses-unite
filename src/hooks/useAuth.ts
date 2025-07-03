@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,6 +17,8 @@ export const useAuth = () => {
       (event, session) => {
         if (!mounted) return;
         
+        console.log('Auth state changed:', event, session?.user?.email);
+        
         setSession(session);
         setUser(session?.user ?? null);
         setIsAdmin(session?.user?.email === 'schifeling@gmail.com');
@@ -26,6 +29,8 @@ export const useAuth = () => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!mounted) return;
+      
+      console.log('Initial session:', session?.user?.email);
       
       setSession(session);
       setUser(session?.user ?? null);
@@ -66,14 +71,29 @@ export const useAuth = () => {
   };
 
   const signOut = async () => {
-    // Clear state immediately for instant UI feedback
-    setUser(null);
-    setSession(null);
-    setIsAdmin(false);
+    console.log('Signing out...');
     
-    // Then call supabase signout
-    const { error } = await supabase.auth.signOut();
-    return { error };
+    try {
+      // Clear state immediately for instant UI feedback
+      setUser(null);
+      setSession(null);
+      setIsAdmin(false);
+      
+      // Then call supabase signout
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Signout error:', error);
+        // If there's an error, we still want to clear the local state
+        // as the user has initiated a logout
+      }
+      
+      console.log('Signout completed');
+      return { error };
+    } catch (error: any) {
+      console.error('Signout catch error:', error);
+      return { error };
+    }
   };
 
   return {
