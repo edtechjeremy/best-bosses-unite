@@ -20,108 +20,8 @@ const handler = async (req: Request): Promise<Response> => {
       return new Response("Missing required parameters", { status: 400 });
     }
 
-    // Create canvas and generate certificate
-    const canvas = new OffscreenCanvas(1400, 1000);
-    const ctx = canvas.getContext('2d')!;
-    
-    // Premium gradient background
-    const gradient = ctx.createLinearGradient(0, 0, 1400, 1000);
-    gradient.addColorStop(0, '#3b82f6');
-    gradient.addColorStop(0.5, '#6366f1');
-    gradient.addColorStop(1, '#8b5cf6');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, 1400, 1000);
-    
-    // Luxury border with multiple layers
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 12;
-    ctx.strokeRect(60, 60, 1280, 880);
-    
-    ctx.strokeStyle = '#f97316';
-    ctx.lineWidth = 6;
-    ctx.strokeRect(80, 80, 1240, 840);
-    
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(100, 100, 1200, 800);
-    
-    // Premium title with shadow
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 80px Georgia, serif';
-    ctx.textAlign = 'center';
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
-    ctx.shadowBlur = 8;
-    ctx.shadowOffsetX = 4;
-    ctx.shadowOffsetY = 4;
-    ctx.fillText('CERTIFIED', 700, 240);
-    
-    // "Best Boss" with luxury styling
-    ctx.font = 'bold 90px Georgia, serif';
-    const bestBossGradient = ctx.createLinearGradient(0, 280, 0, 360);
-    bestBossGradient.addColorStop(0, '#f97316');
-    bestBossGradient.addColorStop(1, '#fb923c');
-    ctx.fillStyle = bestBossGradient;
-    ctx.fillText('BEST BOSS', 700, 340);
-    
-    // Elegant subtitle
-    ctx.font = '36px Georgia, serif';
-    ctx.fillStyle = 'rgba(255,255,255,0.9)';
-    ctx.shadowBlur = 4;
-    ctx.fillText('This certificate is proudly presented to', 700, 420);
-    
-    // Boss name with premium styling
-    ctx.font = 'bold 72px Georgia, serif';
-    ctx.fillStyle = '#ffffff';
-    ctx.shadowColor = 'rgba(247, 147, 22, 0.5)';
-    ctx.shadowBlur = 12;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
-    ctx.fillText(`${bossFirstName} ${bossLastName}`, 700, 540);
-    
-    // Recognition text
-    ctx.font = '32px Georgia, serif';
-    ctx.fillStyle = 'rgba(255,255,255,0.95)';
-    ctx.shadowColor = 'rgba(0,0,0,0.2)';
-    ctx.shadowBlur = 4;
-    ctx.fillText('in recognition of outstanding leadership', 700, 620);
-    ctx.fillText('and exceptional management excellence', 700, 670);
-    
-    // Premium footer with warm orange accent
-    ctx.fillStyle = '#f97316';
-    ctx.font = 'bold 24px Georgia, serif';
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
-    ctx.shadowBlur = 4;
-    ctx.fillText('BESTBOSSES.ORG', 700, 780);
-    
-    ctx.font = '20px Georgia, serif';
-    ctx.fillStyle = 'rgba(255,255,255,0.8)';
-    ctx.fillText('Great Leaders, Verified.', 700, 810);
-    
-    // Elegant date
-    ctx.font = '18px Georgia, serif';
-    ctx.fillStyle = 'rgba(255,255,255,0.7)';
-    const today = new Date();
-    ctx.fillText('Certified: ' + today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }), 700, 860);
-    
-    // Convert canvas to blob
-    const blob = await canvas.convertToBlob({ type: 'image/png' });
-    const arrayBuffer = await blob.arrayBuffer();
-    
-    return new Response(arrayBuffer, {
-      headers: {
-        'Content-Type': 'image/png',
-        'Content-Disposition': `attachment; filename="${bossFirstName}-${bossLastName}-best-boss-certificate.png"`,
-        ...corsHeaders
-      }
-    });
-  } catch (error: any) {
-    console.error("Error generating certificate:", error);
-    
-    // Fallback: Return HTML page that generates certificate client-side
-    const url = new URL(req.url);
-    const bossFirstName = url.searchParams.get('firstName') || 'Boss';
-    const bossLastName = url.searchParams.get('lastName') || 'Leader';
-    
+    // Since Deno doesn't have native Canvas support, we'll use the HTML fallback
+    // but ensure it's served with proper headers to trigger download
     const html = `
       <!DOCTYPE html>
       <html>
@@ -297,6 +197,12 @@ const handler = async (req: Request): Promise<Response> => {
         'Content-Type': 'text/html',
         ...corsHeaders
       }
+    });
+  } catch (error: any) {
+    console.error("Error generating certificate:", error);
+    return new Response("Error generating certificate", { 
+      status: 500,
+      headers: corsHeaders 
     });
   }
 };
