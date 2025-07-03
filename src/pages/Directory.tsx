@@ -1,59 +1,81 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Search, MapPin, Building, Users, AlertCircle } from "lucide-react";
-
-// Mock data for demonstration
-const mockBosses = [
-  {
-    id: 1,
-    firstName: "Sarah",
-    lastName: "Johnson",
-    company: "Tech Innovators Inc",
-    location: "San Francisco, CA",
-    industry: "Technology",
-    function: "Engineering",
-    review: "Sarah is an exceptional leader who truly cares about her team's growth. She provides clear direction while giving us the autonomy to innovate...",
-    nominatorLinkedIn: "https://linkedin.com/in/nominator1"
-  },
-  {
-    id: 2,
-    firstName: "Michael",
-    lastName: "Chen",
-    company: "Growth Marketing Co",
-    location: "Austin, TX",
-    industry: "Marketing",
-    function: "Marketing",
-    review: "Michael has an incredible ability to see the big picture while supporting each team member's individual development. His feedback is always constructive...",
-    nominatorLinkedIn: "https://linkedin.com/in/nominator2"
-  },
-  {
-    id: 3,
-    firstName: "Emily",
-    lastName: "Rodriguez",
-    company: "Financial Solutions LLC",
-    location: "New York, NY",
-    industry: "Finance",
-    function: "Finance",
-    review: "Emily creates a culture of transparency and trust. She's always available when we need guidance and celebrates our wins as much as her own...",
-    nominatorLinkedIn: "https://linkedin.com/in/nominator3"
-  }
-];
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 export const Directory = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [hasAccess, setHasAccess] = useState(false); // This will be managed by actual auth later
+  const { user, isLoading: authLoading } = useAuth();
 
-  const filteredBosses = mockBosses.filter(boss =>
-    boss.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    boss.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  // Check if user has approved nomination
+  const { data: userProfile, isLoading: profileLoading } = useQuery({
+    queryKey: ['user-profile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('has_approved_nomination')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching user profile:', error);
+        return null;
+      }
+      
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch approved bosses
+  const { data: bosses = [], isLoading: bossesLoading } = useQuery({
+    queryKey: ['bosses'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('bosses')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching bosses:', error);
+        return [];
+      }
+      
+      return data || [];
+    },
+    enabled: !!userProfile?.has_approved_nomination || !!user?.email && user.email === 'schifeling@gmail.com',
+  });
+
+  const filteredBosses = bosses.filter(boss =>
+    boss.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    boss.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     boss.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
     boss.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
     boss.industry.toLowerCase().includes(searchTerm.toLowerCase()) ||
     boss.function.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const hasAccess = userProfile?.has_approved_nomination || (user?.email === 'schifeling@gmail.com');
+  const isLoading = authLoading || profileLoading;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!hasAccess) {
     return (
@@ -78,11 +100,11 @@ export const Directory = () => {
             <div className="relative">
               <div className="filter blur-sm pointer-events-none">
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {mockBosses.map(boss => (
+                  {bosses.slice(0, 6).map(boss => (
                     <Card key={boss.id} className="hover:shadow-lg transition-shadow">
                       <CardContent className="p-6">
                         <h3 className="text-xl font-semibold mb-2">
-                          {boss.firstName} {boss.lastName}
+                          {boss.first_name} {boss.last_name}
                         </h3>
                         <div className="space-y-2 text-sm text-muted-foreground mb-4">
                           <div className="flex items-center space-x-2">
@@ -156,39 +178,49 @@ export const Directory = () => {
             />
           </div>
 
-          {/* Results */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredBosses.map(boss => (
-              <Card key={boss.id} className="hover:shadow-lg transition-shadow cursor-pointer">
-                <Link to={`/boss/${boss.id}`}>
-                  <CardContent className="p-6">
-                    <h3 className="text-xl font-semibold mb-2">
-                      {boss.firstName} {boss.lastName}
-                    </h3>
-                    <div className="space-y-2 text-sm text-muted-foreground mb-4">
-                      <div className="flex items-center space-x-2">
-                        <Building className="w-4 h-4" />
-                        <span>{boss.company}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <MapPin className="w-4 h-4" />
-                        <span>{boss.location}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Users className="w-4 h-4" />
-                        <span>{boss.industry} • {boss.function}</span>
-                      </div>
-                    </div>
-                    <p className="text-sm line-clamp-3">
-                      {boss.review}
-                    </p>
-                  </CardContent>
-                </Link>
-              </Card>
-            ))}
-          </div>
+          {/* Loading state */}
+          {bossesLoading && (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading directory...</p>
+            </div>
+          )}
 
-          {filteredBosses.length === 0 && (
+          {/* Results */}
+          {!bossesLoading && (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredBosses.map(boss => (
+                <Card key={boss.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+                  <Link to={`/boss/${boss.slug}`}>
+                    <CardContent className="p-6">
+                      <h3 className="text-xl font-semibold mb-2">
+                        {boss.first_name} {boss.last_name}
+                      </h3>
+                      <div className="space-y-2 text-sm text-muted-foreground mb-4">
+                        <div className="flex items-center space-x-2">
+                          <Building className="w-4 h-4" />
+                          <span>{boss.company}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <MapPin className="w-4 h-4" />
+                          <span>{boss.location}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Users className="w-4 h-4" />
+                          <span>{boss.industry} • {boss.function}</span>
+                        </div>
+                      </div>
+                      <p className="text-sm line-clamp-3">
+                        {boss.review}
+                      </p>
+                    </CardContent>
+                  </Link>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          {!bossesLoading && filteredBosses.length === 0 && (
             <div className="text-center py-12">
               <p className="text-muted-foreground">No bosses found matching your search.</p>
             </div>
