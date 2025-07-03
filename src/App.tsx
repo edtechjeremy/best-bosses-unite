@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +9,7 @@ import { Header } from "@/components/Header";
 import { Home } from "@/pages/Home";
 import { Register } from "@/pages/Register";
 import { Login } from "@/pages/Login";
+import { ForgotPassword } from "@/pages/ForgotPassword";
 import { Nominate } from "@/pages/Nominate";
 import { Directory } from "@/pages/Directory";
 import { Admin } from "@/pages/Admin";
@@ -28,6 +30,7 @@ const App = () => (
             <Route path="/" element={<Home />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/nominate" element={<Nominate />} />
             <Route path="/directory" element={<Directory />} />
             <Route path="/admin" element={<Admin />} />

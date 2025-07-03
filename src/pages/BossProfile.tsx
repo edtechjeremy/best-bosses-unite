@@ -61,6 +61,8 @@ export const BossProfile = () => {
 
   const fetchBoss = async () => {
     try {
+      console.log('Fetching boss with slug:', slug);
+      
       const { data, error } = await supabase
         .from('bosses')
         .select(`
@@ -74,7 +76,22 @@ export const BossProfile = () => {
         .eq('slug', slug)
         .single();
 
-      if (error) throw error;
+      console.log('Boss data result:', data);
+      console.log('Boss query error:', error);
+
+      if (error) {
+        console.error('Error fetching boss:', error);
+        // If boss not found, try to find by a different slug format
+        if (error.code === 'PGRST116') {
+          // Boss not found with exact slug, let's check what bosses exist
+          const { data: allBosses } = await supabase
+            .from('bosses')
+            .select('slug, first_name, last_name');
+          console.log('All available boss slugs:', allBosses?.map(b => b.slug));
+        }
+        throw error;
+      }
+      
       setBoss(data as any);
     } catch (error) {
       console.error('Error fetching boss:', error);

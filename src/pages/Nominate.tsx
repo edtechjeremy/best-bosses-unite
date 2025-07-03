@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -11,16 +12,16 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
 const industries = [
-  "Technology", "Finance", "Healthcare", "Education", "Marketing",
-  "Sales", "Operations", "Human Resources", "Consulting", "Manufacturing",
-  "Retail", "Legal", "Real Estate", "Non-profit", "Government", "Other"
-];
+  "Consulting", "Education", "Finance", "Government", "Healthcare", "Human Resources", 
+  "Legal", "Manufacturing", "Marketing", "Non-profit", "Operations", "Real Estate", 
+  "Retail", "Sales", "Technology", "Other"
+].sort();
 
 const functions = [
-  "Engineering", "Product Management", "Marketing", "Sales", "Finance",
-  "Operations", "Human Resources", "Design", "Data Science", "Customer Success",
-  "Business Development", "Strategy", "Legal", "IT", "Quality Assurance", "Other"
-];
+  "Business Development", "Customer Success", "Data Science", "Design", "Engineering", 
+  "Finance", "Human Resources", "IT", "Legal", "Marketing", "Operations", 
+  "Product Management", "Quality Assurance", "Sales", "Strategy", "Other"
+].sort();
 
 export const Nominate = () => {
   const [formData, setFormData] = useState({
@@ -95,6 +96,28 @@ export const Nominate = () => {
         });
 
       if (error) throw error;
+
+      // Send notification email to nominator
+      try {
+        const { data: nominatorProfile } = await supabase
+          .from('profiles')
+          .select('first_name')
+          .eq('user_id', user.id)
+          .single();
+
+        await supabase.functions.invoke('send-email', {
+          body: {
+            type: 'nomination_submitted',
+            to: user.email,
+            data: {
+              nominatorFirstName: nominatorProfile?.first_name || '',
+              bossName: `${formData.firstName} ${formData.lastName}`,
+            }
+          }
+        });
+      } catch (emailError) {
+        console.warn("Email sending failed:", emailError);
+      }
 
       toast({
         title: "Nomination Submitted!",
@@ -183,27 +206,28 @@ export const Nominate = () => {
                   </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="company">Current Company *</Label>
-                  <Input
-                    id="company"
-                    name="company"
-                    value={formData.company}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="location">Location *</Label>
-                  <Input
-                    id="location"
-                    name="location"
-                    placeholder="e.g., San Francisco, CA"
-                    value={formData.location}
-                    onChange={handleChange}
-                    required
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="company">Current Company *</Label>
+                    <Input
+                      id="company"
+                      name="company"
+                      value={formData.company}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="location">Location *</Label>
+                    <Input
+                      id="location"
+                      name="location"
+                      placeholder="e.g., San Francisco, CA"
+                      value={formData.location}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -239,28 +263,29 @@ export const Nominate = () => {
                   </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="email">Email Address *</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="linkedinProfile">LinkedIn Profile *</Label>
-                  <Input
-                    id="linkedinProfile"
-                    name="linkedinProfile"
-                    placeholder="https://linkedin.com/in/their-profile"
-                    value={formData.linkedinProfile}
-                    onChange={handleChange}
-                    required
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="email">Email Address *</Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="linkedinProfile">LinkedIn Profile *</Label>
+                    <Input
+                      id="linkedinProfile"
+                      name="linkedinProfile"
+                      placeholder="https://linkedin.com/in/their-profile"
+                      value={formData.linkedinProfile}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
                 </div>
 
                 <div>
