@@ -202,7 +202,7 @@ export const Directory = () => {
                       Access Required
                     </h3>
                     <p className="text-muted-foreground mb-6">
-                      To view our directory of verified best bosses, you need to contribute by nominating an outstanding manager from your experience.
+                      To view our directory of verified best bosses, just nominate an outstanding manager. As soon as your nomination is approved, we'll email you with lifetime access!
                     </p>
                     <div className="space-y-3">
                       <Button variant="hero" size="lg" asChild className="w-full">
