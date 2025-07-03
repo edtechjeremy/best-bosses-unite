@@ -9,7 +9,155 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      bosses: {
+        Row: {
+          company: string
+          created_at: string
+          email: string
+          first_name: string
+          function: string
+          id: string
+          industry: string
+          last_name: string
+          linkedin_profile: string
+          location: string
+          nomination_id: string
+          nominator_id: string
+          review: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          company: string
+          created_at?: string
+          email: string
+          first_name: string
+          function: string
+          id?: string
+          industry: string
+          last_name: string
+          linkedin_profile: string
+          location: string
+          nomination_id: string
+          nominator_id: string
+          review: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          company?: string
+          created_at?: string
+          email?: string
+          first_name?: string
+          function?: string
+          id?: string
+          industry?: string
+          last_name?: string
+          linkedin_profile?: string
+          location?: string
+          nomination_id?: string
+          nominator_id?: string
+          review?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bosses_nomination_id_fkey"
+            columns: ["nomination_id"]
+            isOneToOne: false
+            referencedRelation: "nominations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nominations: {
+        Row: {
+          boss_first_name: string
+          boss_last_name: string
+          company: string
+          created_at: string
+          email: string
+          function: string
+          id: string
+          industry: string
+          linkedin_profile: string
+          location: string
+          nominator_id: string
+          review: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          boss_first_name: string
+          boss_last_name: string
+          company: string
+          created_at?: string
+          email: string
+          function: string
+          id?: string
+          industry: string
+          linkedin_profile: string
+          location: string
+          nominator_id: string
+          review: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          boss_first_name?: string
+          boss_last_name?: string
+          company?: string
+          created_at?: string
+          email?: string
+          function?: string
+          id?: string
+          industry?: string
+          linkedin_profile?: string
+          location?: string
+          nominator_id?: string
+          review?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          first_name: string
+          has_approved_nomination: boolean
+          id: string
+          last_name: string
+          linkedin_profile: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          first_name: string
+          has_approved_nomination?: boolean
+          id?: string
+          last_name: string
+          linkedin_profile: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          first_name?: string
+          has_approved_nomination?: boolean
+          id?: string
+          last_name?: string
+          linkedin_profile?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
