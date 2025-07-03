@@ -20,13 +20,103 @@ const handler = async (req: Request): Promise<Response> => {
       return new Response("Missing required parameters", { status: 400 });
     }
 
-    // Since Deno doesn't have native Canvas support, we'll use the HTML fallback
-    // but ensure it's served with proper headers to trigger download
+    // Create SVG certificate server-side
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    
+    const svgContent = `
+      <svg width="1400" height="1000" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <!-- Background gradient -->
+          <linearGradient id="backgroundGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+            <stop offset="50%" style="stop-color:#6366f1;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+          </linearGradient>
+          
+          <!-- Best Boss text gradient -->
+          <linearGradient id="bestBossGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" style="stop-color:#f97316;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#fb923c;stop-opacity:1" />
+          </linearGradient>
+          
+          <!-- Text shadow filter -->
+          <filter id="textShadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="4" dy="4" stdDeviation="8" flood-color="rgba(0,0,0,0.3)"/>
+          </filter>
+          
+          <!-- Boss name glow filter -->
+          <filter id="bossNameGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="0" stdDeviation="12" flood-color="rgba(247, 147, 22, 0.5)"/>
+          </filter>
+        </defs>
+        
+        <!-- Background -->
+        <rect width="1400" height="1000" fill="url(#backgroundGradient)"/>
+        
+        <!-- Outer border -->
+        <rect x="60" y="60" width="1280" height="880" fill="none" stroke="#ffffff" stroke-width="12"/>
+        
+        <!-- Middle border -->
+        <rect x="80" y="80" width="1240" height="840" fill="none" stroke="#f97316" stroke-width="6"/>
+        
+        <!-- Inner border -->
+        <rect x="100" y="100" width="1200" height="800" fill="none" stroke="#ffffff" stroke-width="2"/>
+        
+        <!-- CERTIFIED title -->
+        <text x="700" y="240" font-family="Georgia, serif" font-size="80" font-weight="bold" 
+              fill="#ffffff" text-anchor="middle" filter="url(#textShadow)">CERTIFIED</text>
+        
+        <!-- BEST BOSS title -->
+        <text x="700" y="340" font-family="Georgia, serif" font-size="90" font-weight="bold" 
+              fill="url(#bestBossGradient)" text-anchor="middle" filter="url(#textShadow)">BEST BOSS</text>
+        
+        <!-- Subtitle -->
+        <text x="700" y="420" font-family="Georgia, serif" font-size="36" 
+              fill="rgba(255,255,255,0.9)" text-anchor="middle">This certificate is proudly presented to</text>
+        
+        <!-- Boss name -->
+        <text x="700" y="540" font-family="Georgia, serif" font-size="72" font-weight="bold" 
+              fill="#ffffff" text-anchor="middle" filter="url(#bossNameGlow)">${bossFirstName} ${bossLastName}</text>
+        
+        <!-- Recognition text line 1 -->
+        <text x="700" y="620" font-family="Georgia, serif" font-size="32" 
+              fill="rgba(255,255,255,0.95)" text-anchor="middle">in recognition of outstanding leadership</text>
+        
+        <!-- Recognition text line 2 -->
+        <text x="700" y="670" font-family="Georgia, serif" font-size="32" 
+              fill="rgba(255,255,255,0.95)" text-anchor="middle">and exceptional management excellence</text>
+        
+        <!-- Organization name -->
+        <text x="700" y="780" font-family="Georgia, serif" font-size="24" font-weight="bold" 
+              fill="#f97316" text-anchor="middle" filter="url(#textShadow)">BESTBOSSES.ORG</text>
+        
+        <!-- Tagline -->
+        <text x="700" y="810" font-family="Georgia, serif" font-size="20" 
+              fill="rgba(255,255,255,0.8)" text-anchor="middle">Great Leaders, Verified.</text>
+        
+        <!-- Date -->
+        <text x="700" y="860" font-family="Georgia, serif" font-size="18" 
+              fill="rgba(255,255,255,0.7)" text-anchor="middle">Certified: ${formattedDate}</text>
+      </svg>
+    `;
+
+    // Convert SVG to PNG using a web service or return SVG directly
+    // For now, we'll use a service to convert SVG to PNG
+    const svgBuffer = new TextEncoder().encode(svgContent);
+    
+    // Use htmlcsstoimage.com API or similar service to convert SVG to PNG
+    // For this implementation, we'll use a simple approach with base64 encoded SVG
+    const base64Svg = btoa(svgContent);
+    const dataUrl = `data:image/svg+xml;base64,${base64Svg}`;
+    
+    // Since we can't directly convert SVG to PNG in Deno without external dependencies,
+    // we'll create a minimal HTML page that auto-downloads the PNG
     const html = `
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Download Your Best Boss Certificate</title>
+        <title>Downloading Certificate...</title>
         <style>
           body { 
             font-family: Georgia, serif; 
@@ -41,54 +131,19 @@ const handler = async (req: Request): Promise<Response> => {
             align-items: center;
             margin: 0;
           }
-          .container {
+          .message {
             background: rgba(255,255,255,0.1);
             padding: 40px;
             border-radius: 20px;
             backdrop-filter: blur(10px);
             border: 2px solid rgba(255,255,255,0.2);
-            max-width: 600px;
-          }
-          h1 { 
-            font-size: 48px; 
-            margin-bottom: 20px; 
-            color: #f97316;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-          }
-          p { 
-            font-size: 20px; 
-            margin-bottom: 30px; 
-            line-height: 1.6;
-          }
-          .download-btn {
-            background: #f97316;
-            color: white;
-            padding: 15px 30px;
-            font-size: 18px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-family: Georgia, serif;
-            font-weight: bold;
-            box-shadow: 0 4px 15px rgba(247, 147, 22, 0.3);
-            transition: all 0.3s ease;
-            margin: 10px;
-            text-decoration: none;
-            display: inline-block;
-          }
-          .download-btn:hover {
-            background: #ea580c;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(247, 147, 22, 0.4);
           }
         </style>
       </head>
       <body>
-        <div class="container">
-          <h1>🏆 Congratulations, ${bossFirstName}!</h1>
-          <p>Your premium Best Boss certificate is ready for download.</p>
-          <p>Click the button below to download your certificate:</p>
-          <button class="download-btn" onclick="downloadCertificate()">Download Certificate</button>
+        <div class="message">
+          <h1>🏆 Generating Your Certificate</h1>
+          <p>Your Best Boss certificate is being prepared for download...</p>
         </div>
         <script>
           function downloadCertificate() {
@@ -181,11 +236,18 @@ const handler = async (req: Request): Promise<Response> => {
             link.download = '${bossFirstName}-${bossLastName}-best-boss-certificate.png';
             link.href = canvas.toDataURL('image/png', 1.0);
             link.click();
+            
+            // Close the window after download (for popup windows)
+            setTimeout(() => {
+              if (window.opener) {
+                window.close();
+              }
+            }, 1000);
           }
           
           // Auto-download when page loads
           window.addEventListener('load', () => {
-            setTimeout(downloadCertificate, 1000);
+            setTimeout(downloadCertificate, 500);
           });
         </script>
       </body>
