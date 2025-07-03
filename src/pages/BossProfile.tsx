@@ -104,7 +104,7 @@ export const BossProfile = () => {
             console.log('Found nomination, creating boss object:', nominationData);
             
             // Create boss object from nomination data
-            const bossFromNomination = {
+            const bossFromNomination: Boss = {
               id: nominationData.id,
               first_name: nominationData.boss_first_name,
               last_name: nominationData.boss_last_name,
@@ -117,7 +117,9 @@ export const BossProfile = () => {
               review: nominationData.review,
               nominator_id: nominationData.nominator_id,
               slug: slug!,
-              profiles: nominationData.profiles || null
+              profiles: nominationData.profiles && typeof nominationData.profiles === 'object' && 'first_name' in nominationData.profiles
+                ? nominationData.profiles
+                : null
             };
             
             setBoss(bossFromNomination);
@@ -130,7 +132,15 @@ export const BossProfile = () => {
         return;
       }
       
-      setBoss(bossData);
+      // Transform the boss data to ensure proper typing
+      const transformedBoss: Boss = {
+        ...bossData,
+        profiles: bossData.profiles && typeof bossData.profiles === 'object' && 'first_name' in bossData.profiles
+          ? bossData.profiles
+          : null
+      };
+      
+      setBoss(transformedBoss);
     } catch (error) {
       console.error('Error fetching boss:', error);
       setBoss(null);

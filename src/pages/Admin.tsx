@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -69,7 +68,16 @@ export const Admin = () => {
       }
 
       console.log('Nominations data:', nominationsData);
-      setNominations(nominationsData || []);
+      
+      // Transform the data to ensure proper typing and handle null profiles
+      const transformedNominations: Nomination[] = (nominationsData || []).map(nomination => ({
+        ...nomination,
+        profiles: nomination.profiles && typeof nomination.profiles === 'object' && 'first_name' in nomination.profiles
+          ? nomination.profiles
+          : null
+      }));
+      
+      setNominations(transformedNominations);
     } catch (error) {
       console.error('Error fetching nominations:', error);
       toast({
