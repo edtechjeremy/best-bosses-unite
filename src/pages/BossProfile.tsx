@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Download, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { hasProfile } from "@/lib/typeGuards";
 
 interface Boss {
   id: string;
@@ -64,17 +64,10 @@ export const BossProfile = () => {
     try {
       console.log('Fetching boss with slug:', slug);
       
-      // First try to get the boss directly with profile data
+      // First try to get the boss directly
       const { data: bossData, error: bossError } = await supabase
         .from('bosses')
-        .select(`
-          *,
-          profiles!bosses_nominator_id_fkey (
-            first_name,
-            last_name,
-            linkedin_profile
-          )
-        `)
+        .select('*')
         .eq('slug', slug)
         .single();
 
@@ -82,6 +75,7 @@ export const BossProfile = () => {
         console.error('Error fetching boss:', bossError);
         
         // If boss not found, try to get from nominations table using the slug pattern
+        // The slug format is: firstname-lastname-nominationid
         const slugParts = slug?.split('-') || [];
         if (slugParts.length >= 3) {
           const nominationId = slugParts[slugParts.length - 1];
@@ -89,14 +83,7 @@ export const BossProfile = () => {
           
           const { data: nominationData, error: nominationError } = await supabase
             .from('nominations')
-            .select(`
-              *,
-              profiles!nominations_nominator_id_fkey (
-                first_name,
-                last_name,
-                linkedin_profile
-              )
-            `)
+            .select('*')
             .eq('id', nominationId)
             .eq('status', 'approved')
             .single();
@@ -104,10 +91,15 @@ export const BossProfile = () => {
           if (nominationData && !nominationError) {
             console.log('Found nomination, creating boss object:', nominationData);
             
-            const profile = hasProfile(nominationData.profiles) ? nominationData.profiles : null;
-            
+            // Get nominator profile
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('first_name, last_name, linkedin_profile')
+              .eq('user_id', nominationData.nominator_id)
+              .single();
+
             // Create boss object from nomination data
-            const bossFromNomination: Boss = {
+            const bossFromNomination = {
               id: nominationData.id,
               first_name: nominationData.boss_first_name,
               last_name: nominationData.boss_last_name,
@@ -120,7 +112,7 @@ export const BossProfile = () => {
               review: nominationData.review,
               nominator_id: nominationData.nominator_id,
               slug: slug!,
-              profiles: profile
+              profiles: profileData || null
             };
             
             setBoss(bossFromNomination);
@@ -133,15 +125,17 @@ export const BossProfile = () => {
         return;
       }
       
-      const profile = hasProfile(bossData.profiles) ? bossData.profiles : null;
-      
-      // Transform the boss data to ensure proper typing
-      const transformedBoss: Boss = {
+      // Get nominator profile for the boss
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, linkedin_profile')
+        .eq('user_id', bossData.nominator_id)
+        .single();
+
+      setBoss({
         ...bossData,
-        profiles: profile
-      };
-      
-      setBoss(transformedBoss);
+        profiles: profileData || null
+      });
     } catch (error) {
       console.error('Error fetching boss:', error);
       setBoss(null);
@@ -417,7 +411,7 @@ export const BossProfile = () => {
                          rel="noopener noreferrer"
                          className="text-primary hover:underline"
                        >
-                         {boss.profiles?.first_name || 'Unknown'} {boss.profiles?.last_name || 'User'}
+                         {boss.profiles?.first_name} {boss.profiles?.last_name}
                        </a>
                     </p>
                   </div>
