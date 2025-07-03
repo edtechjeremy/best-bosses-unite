@@ -1,7 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -60,8 +60,8 @@ const handler = async (req: Request): Promise<Response> => {
         break;
         
       case 'nomination_approved_nominator':
-        const linkedinShareText = encodeURIComponent(`🏆 Congratulations to ${data.bossName} for being recognized as a Certified #BestBoss!\n\nWho's a manager who made a big difference in your career?\n\nGive 'em a little ❤️ today!`);
-        const linkedinShareUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${linkedinShareText}&url=${encodeURIComponent(data.bossProfileUrl)}`;
+        const linkedinShareText = encodeURIComponent(`🏆 Congratulations to ${data.bossName} for being recognized as a Certified #BestBoss!\n\nWho's a manager who made a big difference in your career?\n\nGive 'em a little ❤️ today!\n\n${data.bossProfileUrl}`);
+        const linkedinShareUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${linkedinShareText}`;
         
         emailResponse = await resend.emails.send({
           from: "Best Bosses <info@bestbosses.org>",
@@ -79,8 +79,8 @@ const handler = async (req: Request): Promise<Response> => {
         break;
         
       case 'nomination_approved_boss':
-        const bossLinkedinShareText = encodeURIComponent(`Happy to be nominated by ${data.nominatorName} as a #BestBoss.\n\nWho's a manager who made a big difference in your career?`);
-        const bossLinkedinShareUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${bossLinkedinShareText}&url=${encodeURIComponent(data.bossProfileUrl)}`;
+        const bossLinkedinShareText = encodeURIComponent(`Happy to be nominated by ${data.nominatorName} as a #BestBoss.\n\nWho's a manager who made a big difference in your career?\n\n${data.bossProfileUrl}`);
+        const bossLinkedinShareUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${bossLinkedinShareText}`;
         
         // Create certificate download function
         const createCertificate = () => {
@@ -97,16 +97,55 @@ const handler = async (req: Request): Promise<Response> => {
                   border: 8px solid #3b82f6; 
                   padding: 40px; 
                   text-align: center; 
-                  background: linear-gradient(to bottom, #ffffff, #f8fafc);
+                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                   margin: 20px auto;
+                  position: relative;
+                  color: white;
                 }
-                .title { font-size: 48px; font-weight: bold; color: #1e293b; margin-bottom: 20px; }
-                .subtitle { font-size: 24px; color: #64748b; margin-bottom: 30px; }
-                .name { font-size: 36px; font-weight: bold; background: linear-gradient(to right, #3b82f6, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 20px 0; }
-                .description { font-size: 20px; color: #1e293b; margin: 20px 0; }
-                .details { font-size: 18px; color: #64748b; margin: 20px 0; }
-                .footer { font-size: 16px; color: #f97316; font-weight: bold; margin-top: 40px; }
-                .date { font-size: 14px; color: #94a3b8; margin-top: 20px; }
+                .title { 
+                  font-size: 48px; 
+                  font-weight: bold; 
+                  color: white; 
+                  margin-bottom: 20px; 
+                  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+                }
+                .subtitle { 
+                  font-size: 24px; 
+                  color: rgba(255,255,255,0.9); 
+                  margin-bottom: 30px; 
+                }
+                .name { 
+                  font-size: 36px; 
+                  font-weight: bold; 
+                  background: linear-gradient(45deg, #f97316, #fbbf24); 
+                  -webkit-background-clip: text; 
+                  -webkit-text-fill-color: transparent; 
+                  background-clip: text;
+                  margin: 20px 0; 
+                  text-shadow: none;
+                }
+                .description { 
+                  font-size: 20px; 
+                  color: rgba(255,255,255,0.95); 
+                  margin: 20px 0; 
+                }
+                .details { 
+                  font-size: 18px; 
+                  color: rgba(255,255,255,0.8); 
+                  margin: 20px 0; 
+                }
+                .footer { 
+                  font-size: 16px; 
+                  color: #f97316; 
+                  font-weight: bold; 
+                  margin-top: 40px; 
+                  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+                }
+                .date { 
+                  font-size: 14px; 
+                  color: rgba(255,255,255,0.7); 
+                  margin-top: 20px; 
+                }
               </style>
             </head>
             <body>
@@ -126,10 +165,10 @@ const handler = async (req: Request): Promise<Response> => {
                   canvas.width = 1200;
                   canvas.height = 800;
                   
-                  // Background
+                  // Background gradient
                   const gradient = ctx.createLinearGradient(0, 0, 1200, 800);
-                  gradient.addColorStop(0, '#ffffff');
-                  gradient.addColorStop(1, '#f8fafc');
+                  gradient.addColorStop(0, '#667eea');
+                  gradient.addColorStop(1, '#764ba2');
                   ctx.fillStyle = gradient;
                   ctx.fillRect(0, 0, 1200, 800);
                   
@@ -139,33 +178,45 @@ const handler = async (req: Request): Promise<Response> => {
                   ctx.strokeRect(40, 40, 1120, 720);
                   
                   // Text
-                  ctx.fillStyle = '#1e293b';
+                  ctx.fillStyle = 'white';
                   ctx.font = 'bold 64px Arial';
                   ctx.textAlign = 'center';
+                  ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                  ctx.shadowBlur = 4;
+                  ctx.shadowOffsetX = 2;
+                  ctx.shadowOffsetY = 2;
                   ctx.fillText('Certified Best Boss', 600, 160);
                   
                   ctx.font = '32px Arial';
-                  ctx.fillStyle = '#64748b';
+                  ctx.fillStyle = 'rgba(255,255,255,0.9)';
                   ctx.fillText('This is to certify that', 600, 240);
                   
-                  ctx.fillStyle = '#3b82f6';
+                  ctx.fillStyle = '#f97316';
                   ctx.font = 'bold 52px Arial';
+                  ctx.shadowColor = 'none';
+                  ctx.shadowBlur = 0;
                   ctx.fillText('${data.bossFirstName} ${data.bossLastName}', 600, 320);
                   
-                  ctx.fillStyle = '#1e293b';
+                  ctx.fillStyle = 'rgba(255,255,255,0.95)';
                   ctx.font = '28px Arial';
                   ctx.fillText('has been recognized as an outstanding leader by their team.', 600, 420);
                   
-                  ctx.fillStyle = '#64748b';
+                  ctx.fillStyle = 'rgba(255,255,255,0.8)';
                   ctx.font = '24px Arial';
                   ctx.fillText('${data.industry} • ${data.function}', 600, 480);
                   
                   ctx.fillStyle = '#f97316';
                   ctx.font = 'bold 20px Arial';
+                  ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                  ctx.shadowBlur = 2;
+                  ctx.shadowOffsetX = 1;
+                  ctx.shadowOffsetY = 1;
                   ctx.fillText('Certified by BestBosses.org | Great Leaders, Verified.', 600, 600);
                   
-                  ctx.fillStyle = '#94a3b8';
+                  ctx.fillStyle = 'rgba(255,255,255,0.7)';
                   ctx.font = '20px Arial';
+                  ctx.shadowColor = 'none';
+                  ctx.shadowBlur = 0;
                   ctx.fillText('Issued: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}', 600, 640);
                   
                   const link = document.createElement('a');
@@ -191,7 +242,7 @@ const handler = async (req: Request): Promise<Response> => {
             <p>At BestBosses.org (the internet's only verified manager review site), we fundamentally believe the best bosses deserve to be recognized - and to get the best talent on their teams.</p>
             <p>So be sure to share your award today:</p>
             <div style="margin: 20px 0;">
-              <p><strong>1) <a href="${data.bossProfileUrl}">Download Your Certificate</a></strong></p>
+              <p><strong>1) <a href="${createCertificate()}">Download Your Certificate</a></strong></p>
               
               <p><strong>2) <a href="${bossLinkedinShareUrl}">Post on LinkedIn</a></strong></p>
               
