@@ -67,6 +67,19 @@ export const Nominate = () => {
       return;
     }
 
+    // Validate LinkedIn Profile URL
+    try {
+      new URL(formData.linkedinProfile);
+    } catch {
+      toast({
+        title: "Invalid URL",
+        description: "Please enter a valid LinkedIn Profile URL",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
     if (!user) {
       toast({
         title: "Authentication Required",
@@ -266,10 +279,11 @@ export const Nominate = () => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="linkedinProfile">LinkedIn Profile *</Label>
+                    <Label htmlFor="linkedinProfile">LinkedIn Profile URL *</Label>
                     <Input
                       id="linkedinProfile"
                       name="linkedinProfile"
+                      type="url"
                       placeholder="https://linkedin.com/in/their-profile"
                       value={formData.linkedinProfile}
                       onChange={handleChange}

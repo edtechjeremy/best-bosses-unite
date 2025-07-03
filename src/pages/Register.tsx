@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,7 @@ export const Register = () => {
     firstName: "",
     lastName: "",
     email: "",
-    linkedinProfile: "https://www.linkedin.com/in/",
+    linkedinProfile: "",
     password: "",
     confirmPassword: ""
   });
@@ -47,6 +46,19 @@ export const Register = () => {
       return;
     }
 
+    // Validate LinkedIn Profile URL
+    try {
+      new URL(formData.linkedinProfile);
+    } catch {
+      toast({
+        title: "Error",
+        description: "Please enter a valid LinkedIn Profile URL",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
     const { error } = await signUp(
       formData.email,
       formData.password,
@@ -73,26 +85,10 @@ export const Register = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    
-    if (name === 'linkedinProfile') {
-      // Ensure LinkedIn URL always starts with the correct prefix
-      if (!value.startsWith('https://www.linkedin.com/in/')) {
-        setFormData(prev => ({
-          ...prev,
-          [name]: 'https://www.linkedin.com/in/' + value.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//, '')
-        }));
-      } else {
-        setFormData(prev => ({
-          ...prev,
-          [name]: value
-        }));
-      }
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    }
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   return (
@@ -145,10 +141,11 @@ export const Register = () => {
               </div>
 
               <div>
-                <Label htmlFor="linkedinProfile">LinkedIn Profile *</Label>
+                <Label htmlFor="linkedinProfile">LinkedIn Profile URL *</Label>
                 <Input
                   id="linkedinProfile"
                   name="linkedinProfile"
+                  type="url"
                   placeholder="https://www.linkedin.com/in/your-profile"
                   value={formData.linkedinProfile}
                   onChange={handleChange}
