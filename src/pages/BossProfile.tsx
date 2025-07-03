@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Download, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { hasProfile } from "@/lib/typeGuards";
 
 interface Boss {
   id: string;
@@ -103,6 +104,8 @@ export const BossProfile = () => {
           if (nominationData && !nominationError) {
             console.log('Found nomination, creating boss object:', nominationData);
             
+            const profile = hasProfile(nominationData.profiles) ? nominationData.profiles : null;
+            
             // Create boss object from nomination data
             const bossFromNomination: Boss = {
               id: nominationData.id,
@@ -117,12 +120,7 @@ export const BossProfile = () => {
               review: nominationData.review,
               nominator_id: nominationData.nominator_id,
               slug: slug!,
-              profiles: nominationData.profiles && 
-                        typeof nominationData.profiles === 'object' && 
-                        nominationData.profiles !== null &&
-                        'first_name' in nominationData.profiles
-                ? nominationData.profiles as { first_name: string; last_name: string; linkedin_profile: string; }
-                : null
+              profiles: profile
             };
             
             setBoss(bossFromNomination);
@@ -135,15 +133,12 @@ export const BossProfile = () => {
         return;
       }
       
+      const profile = hasProfile(bossData.profiles) ? bossData.profiles : null;
+      
       // Transform the boss data to ensure proper typing
       const transformedBoss: Boss = {
         ...bossData,
-        profiles: bossData.profiles && 
-                  typeof bossData.profiles === 'object' && 
-                  bossData.profiles !== null &&
-                  'first_name' in bossData.profiles
-          ? bossData.profiles as { first_name: string; last_name: string; linkedin_profile: string; }
-          : null
+        profiles: profile
       };
       
       setBoss(transformedBoss);

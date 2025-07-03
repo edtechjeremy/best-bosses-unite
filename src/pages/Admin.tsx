@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ExternalLink, Eye, Mail } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { hasProfile } from "@/lib/typeGuards";
 
 interface Nomination {
   id: string;
@@ -72,12 +73,7 @@ export const Admin = () => {
       // Transform the data to ensure proper typing and handle null profiles
       const transformedNominations: Nomination[] = (nominationsData || []).map(nomination => ({
         ...nomination,
-        profiles: nomination.profiles && 
-                  typeof nomination.profiles === 'object' && 
-                  nomination.profiles !== null &&
-                  'first_name' in nomination.profiles
-          ? nomination.profiles as { first_name: string; last_name: string; email: string; linkedin_profile: string; }
-          : null
+        profiles: hasProfile(nomination.profiles) ? nomination.profiles : null
       }));
       
       setNominations(transformedNominations);
@@ -302,7 +298,10 @@ export const Admin = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {nominations.map((nomination) => (
+                {nominations.map((nomination) => {
+                  const profile = hasProfile(nomination.profiles) ? nomination.profiles : null;
+                  
+                  return (
                   <TableRow key={nomination.id}>
                     <TableCell className="font-medium">
                       <Dialog>
@@ -400,11 +399,11 @@ export const Admin = () => {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <span className="text-sm">
-                          {nomination.profiles?.first_name || 'Unknown'} {nomination.profiles?.last_name || 'User'}
+                          {profile ? `${profile.first_name} ${profile.last_name}` : 'Unknown User'}
                         </span>
-                        {nomination.profiles?.linkedin_profile && (
+                        {profile?.linkedin_profile && (
                           <a 
-                            href={nomination.profiles.linkedin_profile} 
+                            href={profile.linkedin_profile} 
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="text-primary hover:text-primary/80"
