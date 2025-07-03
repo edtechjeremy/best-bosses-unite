@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,15 +34,27 @@ export const Nominate = () => {
     linkedinProfile: "",
     review: ""
   });
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [reviewCharCount, setReviewCharCount] = useState(0);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isLoading && !user) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to nominate a boss.",
+        variant: "destructive",
+      });
+      navigate("/login");
+    }
+  }, [user, isLoading, navigate, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsSubmitting(true);
 
     // Validation
     if (reviewCharCount < 100) {
@@ -51,7 +63,7 @@ export const Nominate = () => {
         description: "Please provide at least 100 characters explaining why you'd recommend this person.",
         variant: "destructive",
       });
-      setIsLoading(false);
+      setIsSubmitting(false);
       return;
     }
 
@@ -61,7 +73,7 @@ export const Nominate = () => {
         description: "Please log in to submit a nomination.",
         variant: "destructive",
       });
-      setIsLoading(false);
+      setIsSubmitting(false);
       navigate("/login");
       return;
     }
@@ -96,7 +108,7 @@ export const Nominate = () => {
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -118,6 +130,20 @@ export const Nominate = () => {
       [name]: value
     }));
   };
+
+  // Show loading while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div>Loading...</div>
+      </div>
+    );
+  }
+
+  // Don't render the form if user is not authenticated (will redirect)
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background py-8">
@@ -263,11 +289,11 @@ export const Nominate = () => {
                 <Button 
                   type="submit" 
                   className="w-full" 
-                  disabled={isLoading || reviewCharCount < 100}
+                  disabled={isSubmitting || reviewCharCount < 100}
                   variant="hero"
                   size="lg"
                 >
-                  {isLoading ? "Submitting Nomination..." : "Submit Nomination"}
+                  {isSubmitting ? "Submitting Nomination..." : "Submit Nomination"}
                 </Button>
               </form>
             </CardContent>
