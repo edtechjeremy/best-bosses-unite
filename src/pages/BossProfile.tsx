@@ -152,7 +152,7 @@ export const BossProfile = () => {
   };
 
   const handleDownloadCertificate = () => {
-    // Create a premium, luxury certificate without company/location
+    // Create a premium, luxury certificate
     const canvas = document.createElement('canvas');
     canvas.width = 1400;
     canvas.height = 1000;
@@ -220,22 +220,29 @@ export const BossProfile = () => {
     ctx.fillText('in recognition of outstanding leadership', 700, 620);
     ctx.fillText('and exceptional management excellence', 700, 670);
     
-    // Premium footer with warm orange accent
+    // VIP badge
+    ctx.font = 'bold 28px Georgia, serif';
+    ctx.fillStyle = '#f97316';
+    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+    ctx.shadowBlur = 6;
+    ctx.fillText('★ VIP LEADER ★', 700, 730);
+    
+    // Premium footer
     ctx.fillStyle = '#f97316';
     ctx.font = 'bold 24px Georgia, serif';
     ctx.shadowColor = 'rgba(0,0,0,0.3)';
     ctx.shadowBlur = 4;
-    ctx.fillText('BESTBOSSES.ORG', 700, 780);
+    ctx.fillText('BESTBOSSES.ORG', 700, 800);
     
     ctx.font = '20px Georgia, serif';
     ctx.fillStyle = 'rgba(255,255,255,0.8)';
-    ctx.fillText('Great Leaders, Verified.', 700, 810);
+    ctx.fillText('Great Leaders, Verified.', 700, 830);
     
     // Elegant date
     ctx.font = '18px Georgia, serif';
     ctx.fillStyle = 'rgba(255,255,255,0.7)';
     const today = new Date();
-    ctx.fillText(`Certified: ${today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, 700, 860);
+    ctx.fillText(`Certified: ${today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, 700, 880);
     
     // Download
     const link = document.createElement('a');
@@ -257,7 +264,8 @@ export const BossProfile = () => {
     );
   }
 
-  if (!boss) {
+  // If boss not found AND user has access, show not found
+  if (!boss && user && hasAccess) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Card>
@@ -266,6 +274,63 @@ export const BossProfile = () => {
             <CardDescription>The boss profile you're looking for doesn't exist.</CardDescription>
           </CardHeader>
         </Card>
+      </div>
+    );
+  }
+
+  // If boss not found but user doesn't have access, or no user, show access required
+  if (!boss) {
+    return (
+      <div className="min-h-screen bg-background py-8">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <Card className="relative overflow-hidden">
+              <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-10 flex items-center justify-center">
+                <div className="text-center p-8">
+                  <h2 className="text-2xl font-bold mb-4">Access Required</h2>
+                  <p className="text-muted-foreground mb-6">
+                    To view boss profiles, you need to register and nominate a great boss first.
+                    <br />Just like Glassdoor, this gives you lifetime access to our directory!
+                  </p>
+                  <Button asChild variant="hero">
+                    <a href="/register">Get Free Access</a>
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Blurred placeholder content */}
+              <div className="filter blur-sm">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle className="text-3xl bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
+                        Amazing Boss
+                      </CardTitle>
+                      <CardDescription className="text-lg mt-2">
+                        Top Company • Great Location
+                      </CardDescription>
+                      <div className="flex gap-2 mt-4">
+                        <Badge variant="secondary">Technology</Badge>
+                        <Badge variant="secondary">Leadership</Badge>
+                      </div>
+                    </div>
+                  </div>
+                </CardHeader>
+                
+                <CardContent className="space-y-8">
+                  <div>
+                    <h3 className="text-xl font-semibold mb-4">Why They're a Best Boss</h3>
+                    <div className="bg-gradient-to-r from-primary/5 to-primary-glow/5 p-6 rounded-lg border border-primary/10">
+                      <div className="text-lg leading-relaxed">
+                        This incredible leader transformed our team culture and helped everyone grow...
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </div>
+            </Card>
+          </div>
+        </div>
       </div>
     );
   }
@@ -363,6 +428,7 @@ export const BossProfile = () => {
     );
   }
 
+  // Full access - show complete profile
   return (
     <div className="min-h-screen bg-background py-8">
       <div className="container mx-auto px-4">
