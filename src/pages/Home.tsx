@@ -2,8 +2,10 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, Users, Award } from "lucide-react";
+
 export const Home = () => {
-  return <div className="min-h-screen bg-background">
+  return (
+    <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-primary-glow/5 to-accent/5">
         <div className="container mx-auto px-4 py-20 lg:py-32">
@@ -11,8 +13,10 @@ export const Home = () => {
             <h1 className="text-4xl lg:text-6xl font-bold bg-gradient-to-r from-primary via-primary-glow to-accent bg-clip-text text-transparent mb-6">
               Find Verified Reviews of the World's Best Bosses
             </h1>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">Job seekers: Discover amazing managers before you apply.   
-Hiring managers: Showcase your leadership to attract top talent.</p>
+            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+              <strong>Job seekers:</strong> Discover amazing managers <em>before</em> you apply.<br />
+              <strong>Hiring managers:</strong> Showcase your leadership to attract top talent.
+            </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="hero" size="xl" asChild>
                 <Link to="/nominate">Nominate a Best Boss</Link>
@@ -125,5 +129,16 @@ Hiring managers: Showcase your leadership to attract top talent.</p>
           </div>
         </div>
       </section>
-    </div>;
+
+      {/* Footer */}
+      <footer className="bg-muted/30 py-8">
+        <div className="container mx-auto px-4 text-center">
+          <p className="text-muted-foreground">
+            Best Bosses, 2025<br />
+            Great Leaders, Verified.
+          </p>
+        </div>
+      </footer>
+    </div>
+  );
 };

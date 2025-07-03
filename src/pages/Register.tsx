@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ export const Register = () => {
     firstName: "",
     lastName: "",
     email: "",
-    linkedinProfile: "",
+    linkedinProfile: "https://www.linkedin.com/in/",
     password: "",
     confirmPassword: ""
   });
@@ -71,10 +72,27 @@ export const Register = () => {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
+    const { name, value } = e.target;
+    
+    if (name === 'linkedinProfile') {
+      // Ensure LinkedIn URL always starts with the correct prefix
+      if (!value.startsWith('https://www.linkedin.com/in/')) {
+        setFormData(prev => ({
+          ...prev,
+          [name]: 'https://www.linkedin.com/in/' + value.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//, '')
+        }));
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          [name]: value
+        }));
+      }
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   return (
@@ -131,7 +149,7 @@ export const Register = () => {
                 <Input
                   id="linkedinProfile"
                   name="linkedinProfile"
-                  placeholder="https://linkedin.com/in/your-profile"
+                  placeholder="https://www.linkedin.com/in/your-profile"
                   value={formData.linkedinProfile}
                   onChange={handleChange}
                   required
