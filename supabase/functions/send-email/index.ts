@@ -94,7 +94,7 @@ const handler = async (req: Request): Promise<Response> => {
             <p>At BestBosses.org (the internet's only verified manager review site), we fundamentally believe the best bosses deserve to be recognized - and to get the best talent on their teams.</p>
             <p>So be sure to share your award today:</p>
             <div style="margin: 20px 0;">
-              <p><strong>1) <a href="${data.bossProfileUrl}#certificate">Download Your Certificate</a></strong></p>
+              <p><strong>1) <a href="${data.bossProfileUrl}">Download Your Certificate</a></strong></p>
               
               <p><strong>2) <a href="${bossLinkedinShareUrl}">Post on LinkedIn</a></strong></p>
               

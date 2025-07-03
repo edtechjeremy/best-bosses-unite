@@ -142,54 +142,77 @@ export const BossProfile = () => {
   };
 
   const handleShare = () => {
-    const shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}&summary=${encodeURIComponent(`🏆 Congratulations to ${boss?.first_name} ${boss?.last_name} for being recognized as a Certified #BestBoss!\n\nWho's a manager who made a big difference in your career?\n\nGive 'em a little ❤️ today!`)}`;
+    const shareText = encodeURIComponent(`🏆 Congratulations to ${boss?.first_name} ${boss?.last_name} for being recognized as a Certified #BestBoss!\n\nWho's a manager who made a big difference in your career?\n\nGive 'em a little ❤️ today!`);
+    const shareUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${shareText}&url=${encodeURIComponent(window.location.href)}`;
     window.open(shareUrl, '_blank');
   };
 
   const handleDownloadCertificate = () => {
-    // Create a simple certificate as data URL
+    // Create a styled certificate matching the website theme
     const canvas = document.createElement('canvas');
-    canvas.width = 800;
-    canvas.height = 600;
+    canvas.width = 1200;
+    canvas.height = 800;
     const ctx = canvas.getContext('2d')!;
     
-    // Background
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, 800, 600);
+    // Background gradient (matching website theme)
+    const gradient = ctx.createLinearGradient(0, 0, 1200, 800);
+    gradient.addColorStop(0, '#ffffff');
+    gradient.addColorStop(1, '#f8fafc');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 1200, 800);
     
-    // Border
-    ctx.strokeStyle = '#007bff';
+    // Primary border (matching website primary color)
+    ctx.strokeStyle = '#3b82f6';
     ctx.lineWidth = 8;
-    ctx.strokeRect(20, 20, 760, 560);
+    ctx.strokeRect(40, 40, 1120, 720);
+    
+    // Secondary border
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(60, 60, 1080, 680);
     
     // Title
-    ctx.fillStyle = '#333333';
-    ctx.font = 'bold 48px Arial';
+    ctx.fillStyle = '#1e293b';
+    ctx.font = 'bold 64px Arial, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('Certified Best Boss', 400, 120);
+    ctx.fillText('Certified Best Boss', 600, 160);
     
     // Subtitle
-    ctx.font = '24px Arial';
-    ctx.fillText('This is to certify that', 400, 200);
+    ctx.font = '32px Arial, sans-serif';
+    ctx.fillStyle = '#64748b';
+    ctx.fillText('This is to certify that', 600, 240);
     
-    // Name
-    ctx.font = 'bold 36px Arial';
-    ctx.fillStyle = '#007bff';
-    ctx.fillText(`${boss?.first_name} ${boss?.last_name}`, 400, 280);
+    // Name with gradient
+    const nameGradient = ctx.createLinearGradient(0, 280, 0, 340);
+    nameGradient.addColorStop(0, '#3b82f6');
+    nameGradient.addColorStop(1, '#1d4ed8');
+    ctx.fillStyle = nameGradient;
+    ctx.font = 'bold 52px Arial, sans-serif';
+    ctx.fillText(`${boss?.first_name} ${boss?.last_name}`, 600, 320);
     
     // Description
-    ctx.fillStyle = '#333333';
-    ctx.font = '20px Arial';
-    ctx.fillText('has been recognized as an outstanding leader by their team.', 400, 350);
+    ctx.fillStyle = '#1e293b';
+    ctx.font = '28px Arial, sans-serif';
+    ctx.fillText('has been recognized as an outstanding leader by their team.', 600, 420);
+    
+    // Company info
+    ctx.fillStyle = '#64748b';
+    ctx.font = '24px Arial, sans-serif';
+    ctx.fillText(`${boss?.company} • ${boss?.location}`, 600, 480);
     
     // Footer
-    ctx.font = '16px Arial';
-    ctx.fillText('Certified by BestBosses.org | Great Leaders, Verified.', 400, 450);
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '20px Arial, sans-serif';
+    ctx.fillText('Certified by BestBosses.org | Great Leaders, Verified.', 600, 600);
+    
+    // Date
+    const today = new Date();
+    ctx.fillText(`Issued: ${today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, 600, 640);
     
     // Download
     const link = document.createElement('a');
     link.download = `${boss?.first_name}-${boss?.last_name}-best-boss-certificate.png`;
-    link.href = canvas.toDataURL();
+    link.href = canvas.toDataURL('image/png', 1.0);
     link.click();
     
     toast({
@@ -326,20 +349,6 @@ export const BossProfile = () => {
                        </a>
                     </p>
                   </div>
-                </div>
-              </div>
-
-              <div id="certificate" className="bg-gradient-to-br from-primary/10 to-primary-glow/10 p-8 rounded-lg border-2 border-dashed border-primary/20">
-                <div className="text-center space-y-4">
-                  <h2 className="text-2xl font-bold text-primary">Certified Best Boss</h2>
-                  <p className="text-lg">This is to certify that</p>
-                  <h3 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-                    {boss.first_name} {boss.last_name}
-                  </h3>
-                  <p className="text-lg">has been recognized as an outstanding leader by their team.</p>
-                  <p className="text-sm text-muted-foreground mt-8">
-                    Certified by BestBosses.org | Great Leaders, Verified.
-                  </p>
                 </div>
               </div>
             </CardContent>
