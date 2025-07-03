@@ -42,21 +42,30 @@ export const Admin = () => {
 
   const fetchNominations = async () => {
     try {
-      const { data, error } = await supabase
+      // First get all nominations
+      const { data: nominationsData, error: nominationsError } = await supabase
         .from('nominations')
-        .select(`
-          *,
-          profiles!inner(
-            first_name,
-            last_name,
-            email
-          )
-        `)
-        .eq('profiles.user_id', 'nominations.nominator_id')
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setNominations((data as any) || []);
+      if (nominationsError) throw nominationsError;
+
+      // Then get profiles for all nominators
+      const nominatorIds = nominationsData?.map(n => n.nominator_id) || [];
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, first_name, last_name, email')
+        .in('user_id', nominatorIds);
+
+      if (profilesError) throw profilesError;
+
+      // Combine the data
+      const nominationsWithProfiles = nominationsData?.map(nomination => ({
+        ...nomination,
+        profiles: profilesData?.find(profile => profile.user_id === nomination.nominator_id) || null
+      })) || [];
+
+      setNominations(nominationsWithProfiles);
     } catch (error) {
       console.error('Error fetching nominations:', error);
       toast({
