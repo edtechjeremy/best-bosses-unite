@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -46,30 +47,29 @@ export const Admin = () => {
 
   const fetchNominations = async () => {
     try {
-      // Get all nominations with nominator profiles
+      console.log('Fetching nominations with profile data...');
+      
+      // Get all nominations with nominator profiles in a single query
       const { data: nominationsData, error: nominationsError } = await supabase
         .from('nominations')
-        .select('*')
+        .select(`
+          *,
+          profiles!nominations_nominator_id_fkey (
+            first_name,
+            last_name,
+            email,
+            linkedin_profile
+          )
+        `)
         .order('created_at', { ascending: false });
 
-      if (nominationsError) throw nominationsError;
+      if (nominationsError) {
+        console.error('Error fetching nominations:', nominationsError);
+        throw nominationsError;
+      }
 
-      // Get profiles for all nominators
-      const nominatorIds = nominationsData?.map(n => n.nominator_id) || [];
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('user_id, first_name, last_name, email, linkedin_profile')
-        .in('user_id', nominatorIds);
-
-      if (profilesError) throw profilesError;
-
-      // Combine the data
-      const nominationsWithProfiles = nominationsData?.map(nomination => ({
-        ...nomination,
-        profiles: profilesData?.find(profile => profile.user_id === nomination.nominator_id) || null
-      })) || [];
-
-      setNominations(nominationsWithProfiles);
+      console.log('Nominations data:', nominationsData);
+      setNominations(nominationsData || []);
     } catch (error) {
       console.error('Error fetching nominations:', error);
       toast({
@@ -102,19 +102,34 @@ export const Admin = () => {
         const baseUrl = window.location.origin;
         const bossSlug = `${nomination.boss_first_name.toLowerCase()}-${nomination.boss_last_name.toLowerCase()}-${nomination.id}`;
         
+        // Get fresh nominator data to ensure we have the latest info
+        const { data: nominatorProfile } = await supabase
+          .from('profiles')
+          .select('first_name, last_name, email')
+          .eq('user_id', nomination.nominator_id)
+          .single();
+
+        if (!nominatorProfile) {
+          console.warn('No nominator profile found for user:', nomination.nominator_id);
+        }
+
+        console.log('Sending emails with nominator data:', nominatorProfile);
+        
         // Email to nominator
-        await supabase.functions.invoke('send-email', {
-          body: {
-            type: 'nomination_approved_nominator',
-            to: nomination.profiles?.email || '',
-            data: {
-              nominatorFirstName: nomination.profiles?.first_name || '',
-              bossName: `${nomination.boss_first_name} ${nomination.boss_last_name}`,
-              directoryUrl: `${baseUrl}/directory`,
-              bossProfileUrl: `${baseUrl}/boss/${bossSlug}`,
+        if (nominatorProfile?.email) {
+          await supabase.functions.invoke('send-email', {
+            body: {
+              type: 'nomination_approved_nominator',
+              to: nominatorProfile.email,
+              data: {
+                nominatorFirstName: nominatorProfile.first_name || '',
+                bossName: `${nomination.boss_first_name} ${nomination.boss_last_name}`,
+                directoryUrl: `${baseUrl}/directory`,
+                bossProfileUrl: `${baseUrl}/boss/${bossSlug}`,
+              }
             }
-          }
-        });
+          });
+        }
 
         // Email to boss
         await supabase.functions.invoke('send-email', {
@@ -123,10 +138,9 @@ export const Admin = () => {
             to: nomination.email,
             data: {
               bossFirstName: nomination.boss_first_name,
-              nominatorName: `${nomination.profiles?.first_name || ''} ${nomination.profiles?.last_name || ''}`,
+              nominatorName: nominatorProfile ? `${nominatorProfile.first_name || ''} ${nominatorProfile.last_name || ''}`.trim() : 'A colleague',
               review: nomination.review,
               bossProfileUrl: `${baseUrl}/boss/${bossSlug}`,
-              certificateUrl: `${baseUrl}/boss/${bossSlug}#certificate`,
             }
           }
         });
@@ -188,6 +202,13 @@ export const Admin = () => {
       const baseUrl = window.location.origin;
       const bossSlug = `${nomination.boss_first_name.toLowerCase()}-${nomination.boss_last_name.toLowerCase()}-${nomination.id}`;
       
+      // Get fresh nominator data
+      const { data: nominatorProfile } = await supabase
+        .from('profiles')
+        .select('first_name, last_name')
+        .eq('user_id', nomination.nominator_id)
+        .single();
+      
       // Send the nomination email to the boss
       await supabase.functions.invoke('send-email', {
         body: {
@@ -196,7 +217,7 @@ export const Admin = () => {
           data: {
             bossFirstName: nomination.boss_first_name,
             bossLastName: nomination.boss_last_name,
-            nominatorName: `${nomination.profiles?.first_name || ''} ${nomination.profiles?.last_name || ''}`,
+            nominatorName: nominatorProfile ? `${nominatorProfile.first_name || ''} ${nominatorProfile.last_name || ''}`.trim() : 'A colleague',
             review: nomination.review,
             bossProfileUrl: `${baseUrl}/boss/${bossSlug}`,
           }
@@ -320,7 +341,7 @@ export const Admin = () => {
                               <div>
                                 <h4 className="font-medium mb-2">Nominator</h4>
                                 <p className="text-sm text-muted-foreground">
-                                  {selectedNomination.profiles?.first_name} {selectedNomination.profiles?.last_name} ({selectedNomination.profiles?.email})
+                                  {selectedNomination.profiles?.first_name || 'Unknown'} {selectedNomination.profiles?.last_name || 'User'} ({selectedNomination.profiles?.email || 'No email'})
                                 </p>
                                 <p className="text-xs text-muted-foreground">
                                   Submitted: {new Date(selectedNomination.created_at).toLocaleDateString()}
@@ -368,7 +389,7 @@ export const Admin = () => {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <span className="text-sm">
-                          {nomination.profiles?.first_name} {nomination.profiles?.last_name}
+                          {nomination.profiles?.first_name || 'Unknown'} {nomination.profiles?.last_name || 'User'}
                         </span>
                         {nomination.profiles?.linkedin_profile && (
                           <a 
