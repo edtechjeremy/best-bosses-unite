@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -6,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { ExternalLink, Eye } from "lucide-react";
+import { ExternalLink, Eye, Mail } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
@@ -183,6 +182,43 @@ export const Admin = () => {
     }
   };
 
+  const handleResendNominationEmail = async (nomination: Nomination) => {
+    setActionLoading(`resend-${nomination.id}`);
+    try {
+      const baseUrl = window.location.origin;
+      const bossSlug = `${nomination.boss_first_name.toLowerCase()}-${nomination.boss_last_name.toLowerCase()}-${nomination.id}`;
+      
+      // Send the nomination email to the boss
+      await supabase.functions.invoke('send-email', {
+        body: {
+          type: 'nomination_approved_boss',
+          to: nomination.email,
+          data: {
+            bossFirstName: nomination.boss_first_name,
+            bossLastName: nomination.boss_last_name,
+            nominatorName: `${nomination.profiles?.first_name || ''} ${nomination.profiles?.last_name || ''}`,
+            review: nomination.review,
+            bossProfileUrl: `${baseUrl}/boss/${bossSlug}`,
+          }
+        }
+      });
+
+      toast({
+        title: "Email Sent!",
+        description: "The nomination email has been resent to the boss.",
+      });
+    } catch (error) {
+      console.error('Error resending nomination email:', error);
+      toast({
+        title: "Error",
+        description: "Failed to resend nomination email",
+        variant: "destructive",
+      });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   if (!isAdmin) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -291,24 +327,37 @@ export const Admin = () => {
                                 </p>
                               </div>
 
-                              {selectedNomination.status === 'pending' && (
-                                <div className="flex gap-3 pt-4">
+                              <div className="flex gap-3 pt-4">
+                                {selectedNomination.status === 'pending' && (
+                                  <>
+                                    <Button
+                                      onClick={() => handleApprove(selectedNomination)}
+                                      disabled={actionLoading === selectedNomination.id}
+                                      variant="hero"
+                                    >
+                                      {actionLoading === selectedNomination.id ? "Approving..." : "Approve"}
+                                    </Button>
+                                    <Button
+                                      onClick={() => handleReject(selectedNomination.id)}
+                                      disabled={actionLoading === selectedNomination.id}
+                                      variant="destructive"
+                                    >
+                                      {actionLoading === selectedNomination.id ? "Rejecting..." : "Reject"}
+                                    </Button>
+                                  </>
+                                )}
+                                
+                                {selectedNomination.status === 'approved' && (
                                   <Button
-                                    onClick={() => handleApprove(selectedNomination)}
-                                    disabled={actionLoading === selectedNomination.id}
-                                    variant="hero"
+                                    onClick={() => handleResendNominationEmail(selectedNomination)}
+                                    disabled={actionLoading === `resend-${selectedNomination.id}`}
+                                    variant="outline"
                                   >
-                                    {actionLoading === selectedNomination.id ? "Approving..." : "Approve"}
+                                    <Mail className="w-4 h-4 mr-2" />
+                                    {actionLoading === `resend-${selectedNomination.id}` ? "Sending..." : "Resend Nomination Email"}
                                   </Button>
-                                  <Button
-                                    onClick={() => handleReject(selectedNomination.id)}
-                                    disabled={actionLoading === selectedNomination.id}
-                                    variant="destructive"
-                                  >
-                                    {actionLoading === selectedNomination.id ? "Rejecting..." : "Reject"}
-                                  </Button>
-                                </div>
-                              )}
+                                )}
+                              </div>
                             </div>
                           )}
                         </DialogContent>
@@ -363,6 +412,17 @@ export const Admin = () => {
                             {actionLoading === nomination.id ? "..." : "Reject"}
                           </Button>
                         </div>
+                      )}
+                      {nomination.status === 'approved' && (
+                        <Button
+                          onClick={() => handleResendNominationEmail(nomination)}
+                          disabled={actionLoading === `resend-${nomination.id}`}
+                          variant="outline"
+                          size="sm"
+                        >
+                          <Mail className="w-4 h-4 mr-2" />
+                          {actionLoading === `resend-${nomination.id}` ? "..." : "Resend"}
+                        </Button>
                       )}
                     </TableCell>
                   </TableRow>

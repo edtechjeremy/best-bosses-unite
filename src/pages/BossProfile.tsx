@@ -264,79 +264,8 @@ export const BossProfile = () => {
     );
   }
 
-  // If boss not found AND user has access, show not found
-  if (!boss && user && hasAccess) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card>
-          <CardHeader>
-            <CardTitle>Boss Not Found</CardTitle>
-            <CardDescription>The boss profile you're looking for doesn't exist.</CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-    );
-  }
-
-  // If boss not found but user doesn't have access, or no user, show access required
-  if (!boss) {
-    return (
-      <div className="min-h-screen bg-background py-8">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <Card className="relative overflow-hidden">
-              <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-10 flex items-center justify-center">
-                <div className="text-center p-8">
-                  <h2 className="text-2xl font-bold mb-4">Access Required</h2>
-                  <p className="text-muted-foreground mb-6">
-                    To view boss profiles, you need to register and nominate a great boss first.
-                    <br />Just like Glassdoor, this gives you lifetime access to our directory!
-                  </p>
-                  <Button asChild variant="hero">
-                    <a href="/register">Get Free Access</a>
-                  </Button>
-                </div>
-              </div>
-              
-              {/* Blurred placeholder content */}
-              <div className="filter blur-sm">
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-3xl bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-                        Amazing Boss
-                      </CardTitle>
-                      <CardDescription className="text-lg mt-2">
-                        Top Company • Great Location
-                      </CardDescription>
-                      <div className="flex gap-2 mt-4">
-                        <Badge variant="secondary">Technology</Badge>
-                        <Badge variant="secondary">Leadership</Badge>
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="space-y-8">
-                  <div>
-                    <h3 className="text-xl font-semibold mb-4">Why They're a Best Boss</h3>
-                    <div className="bg-gradient-to-r from-primary/5 to-primary-glow/5 p-6 rounded-lg border border-primary/10">
-                      <div className="text-lg leading-relaxed">
-                        This incredible leader transformed our team culture and helped everyone grow...
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </div>
-            </Card>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Show blurred content with access overlay for unauthorized users
-  if (!user || !hasAccess) {
+  // Show blurred content with access overlay for unauthorized users or when boss not found
+  if (!user || !hasAccess || !boss) {
     return (
       <div className="min-h-screen bg-background py-8">
         <div className="container mx-auto px-4">
@@ -361,14 +290,14 @@ export const BossProfile = () => {
                   <div className="flex justify-between items-start">
                     <div>
                       <CardTitle className="text-3xl bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-                        {boss.first_name} {boss.last_name}
+                        {boss?.first_name || "Amazing"} {boss?.last_name || "Boss"}
                       </CardTitle>
                       <CardDescription className="text-lg mt-2">
-                        {boss.company} • {boss.location}
+                        {boss?.company || "Top Company"} • {boss?.location || "Great Location"}
                       </CardDescription>
                       <div className="flex gap-2 mt-4">
-                        <Badge variant="secondary">{boss.industry}</Badge>
-                        <Badge variant="secondary">{boss.function}</Badge>
+                        <Badge variant="secondary">{boss?.industry || "Technology"}</Badge>
+                        <Badge variant="secondary">{boss?.function || "Leadership"}</Badge>
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -386,34 +315,30 @@ export const BossProfile = () => {
                 
                 <CardContent className="space-y-8">
                   <div>
-                    <h3 className="text-xl font-semibold mb-4">Contact Information</h3>
-                    <div className="space-y-2">
-                      <p className="text-muted-foreground">Email: {boss.email}</p>
-                      <a 
-                        href={boss.linkedin_profile} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline inline-flex items-center gap-1"
-                      >
-                        LinkedIn Profile <ExternalLink className="w-4 h-4" />
-                      </a>
-                    </div>
+                    <a 
+                      href={boss?.linkedin_profile || '#'} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline inline-flex items-center gap-1 text-lg"
+                    >
+                      View LinkedIn Profile <ExternalLink className="w-5 h-5" />
+                    </a>
                   </div>
 
                   <div>
                     <h3 className="text-xl font-semibold mb-4">Why They're a Best Boss</h3>
                     <div className="bg-gradient-to-r from-primary/5 to-primary-glow/5 p-6 rounded-lg border border-primary/10">
-                      <div className="text-lg leading-relaxed whitespace-pre-line">{boss.review}</div>
+                      <div className="text-lg leading-relaxed whitespace-pre-line">{boss?.review || "This incredible leader transformed our team culture and helped everyone grow..."}</div>
                       <div className="mt-4 pt-4 border-t border-primary/10">
                         <p className="text-sm text-muted-foreground">
                           Nominated by{" "}
                            <a 
-                             href={boss.profiles?.linkedin_profile || '#'} 
+                             href={boss?.profiles?.linkedin_profile || '#'} 
                              target="_blank" 
                              rel="noopener noreferrer"
                              className="text-primary hover:underline"
                            >
-                             {boss.profiles?.first_name} {boss.profiles?.last_name}
+                             {boss?.profiles?.first_name || "Amazing"} {boss?.profiles?.last_name || "Employee"}
                            </a>
                         </p>
                       </div>
@@ -463,18 +388,14 @@ export const BossProfile = () => {
             
             <CardContent className="space-y-8">
               <div>
-                <h3 className="text-xl font-semibold mb-4">Contact Information</h3>
-                <div className="space-y-2">
-                  <p className="text-muted-foreground">Email: {boss.email}</p>
-                  <a 
-                    href={boss.linkedin_profile} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline inline-flex items-center gap-1"
-                  >
-                    LinkedIn Profile <ExternalLink className="w-4 h-4" />
-                  </a>
-                </div>
+                <a 
+                  href={boss.linkedin_profile} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline inline-flex items-center gap-1 text-lg"
+                >
+                  View LinkedIn Profile <ExternalLink className="w-5 h-5" />
+                </a>
               </div>
 
               <div>
