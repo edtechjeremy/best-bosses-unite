@@ -81,6 +81,7 @@ export const Admin = () => {
   const handleApprove = async (nomination: Nomination) => {
     setActionLoading(nomination.id);
     try {
+      // First update the nomination status
       const { error } = await supabase
         .from('nominations')
         .update({ status: 'approved' })
@@ -88,43 +89,54 @@ export const Admin = () => {
 
       if (error) throw error;
 
-      // Send emails
-      const baseUrl = window.location.origin;
-      const bossSlug = `${nomination.boss_first_name.toLowerCase()}-${nomination.boss_last_name.toLowerCase()}-${nomination.id}`;
-      
-      // Email to nominator
-      await supabase.functions.invoke('send-email', {
-        body: {
-          type: 'nomination_approved_nominator',
-          to: nomination.profiles?.email || '',
-          data: {
-            nominatorFirstName: nomination.profiles?.first_name || '',
-            bossName: `${nomination.boss_first_name} ${nomination.boss_last_name}`,
-            directoryUrl: `${baseUrl}/directory`,
-            bossProfileUrl: `${baseUrl}/boss/${bossSlug}`,
-          }
-        }
-      });
-
-      // Email to boss
-      await supabase.functions.invoke('send-email', {
-        body: {
-          type: 'nomination_approved_boss',
-          to: nomination.email,
-          data: {
-            bossFirstName: nomination.boss_first_name,
-            nominatorName: `${nomination.profiles?.first_name || ''} ${nomination.profiles?.last_name || ''}`,
-            review: nomination.review,
-            bossProfileUrl: `${baseUrl}/boss/${bossSlug}`,
-            certificateUrl: `${baseUrl}/boss/${bossSlug}#certificate`,
-          }
-        }
-      });
-
       toast({
         title: "Nomination Approved!",
-        description: "Boss has been added to the directory and emails sent.",
+        description: "Boss has been added to the directory.",
       });
+
+      // Try to send emails, but don't fail the whole operation if they fail
+      try {
+        const baseUrl = window.location.origin;
+        const bossSlug = `${nomination.boss_first_name.toLowerCase()}-${nomination.boss_last_name.toLowerCase()}-${nomination.id}`;
+        
+        // Email to nominator
+        await supabase.functions.invoke('send-email', {
+          body: {
+            type: 'nomination_approved_nominator',
+            to: nomination.profiles?.email || '',
+            data: {
+              nominatorFirstName: nomination.profiles?.first_name || '',
+              bossName: `${nomination.boss_first_name} ${nomination.boss_last_name}`,
+              directoryUrl: `${baseUrl}/directory`,
+              bossProfileUrl: `${baseUrl}/boss/${bossSlug}`,
+            }
+          }
+        });
+
+        // Email to boss
+        await supabase.functions.invoke('send-email', {
+          body: {
+            type: 'nomination_approved_boss',
+            to: nomination.email,
+            data: {
+              bossFirstName: nomination.boss_first_name,
+              nominatorName: `${nomination.profiles?.first_name || ''} ${nomination.profiles?.last_name || ''}`,
+              review: nomination.review,
+              bossProfileUrl: `${baseUrl}/boss/${bossSlug}`,
+              certificateUrl: `${baseUrl}/boss/${bossSlug}#certificate`,
+            }
+          }
+        });
+
+        console.log("Emails sent successfully");
+      } catch (emailError) {
+        console.warn("Email sending failed, but nomination was still approved:", emailError);
+        toast({
+          title: "Note",
+          description: "Nomination approved but emails may not have been sent.",
+          variant: "destructive",
+        });
+      }
 
       fetchNominations();
     } catch (error) {
