@@ -76,7 +76,7 @@ export const Admin = () => {
                   typeof nomination.profiles === 'object' && 
                   nomination.profiles !== null &&
                   'first_name' in nomination.profiles
-          ? nomination.profiles
+          ? nomination.profiles as { first_name: string; last_name: string; email: string; linkedin_profile: string; }
           : null
       }));
       

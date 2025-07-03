@@ -121,7 +121,7 @@ export const BossProfile = () => {
                         typeof nominationData.profiles === 'object' && 
                         nominationData.profiles !== null &&
                         'first_name' in nominationData.profiles
-                ? nominationData.profiles
+                ? nominationData.profiles as { first_name: string; last_name: string; linkedin_profile: string; }
                 : null
             };
             
@@ -142,7 +142,7 @@ export const BossProfile = () => {
                   typeof bossData.profiles === 'object' && 
                   bossData.profiles !== null &&
                   'first_name' in bossData.profiles
-          ? bossData.profiles
+          ? bossData.profiles as { first_name: string; last_name: string; linkedin_profile: string; }
           : null
       };
       
