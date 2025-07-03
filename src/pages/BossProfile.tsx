@@ -117,7 +117,10 @@ export const BossProfile = () => {
               review: nominationData.review,
               nominator_id: nominationData.nominator_id,
               slug: slug!,
-              profiles: nominationData.profiles && typeof nominationData.profiles === 'object' && 'first_name' in nominationData.profiles
+              profiles: nominationData.profiles && 
+                        typeof nominationData.profiles === 'object' && 
+                        nominationData.profiles !== null &&
+                        'first_name' in nominationData.profiles
                 ? nominationData.profiles
                 : null
             };
@@ -135,7 +138,10 @@ export const BossProfile = () => {
       // Transform the boss data to ensure proper typing
       const transformedBoss: Boss = {
         ...bossData,
-        profiles: bossData.profiles && typeof bossData.profiles === 'object' && 'first_name' in bossData.profiles
+        profiles: bossData.profiles && 
+                  typeof bossData.profiles === 'object' && 
+                  bossData.profiles !== null &&
+                  'first_name' in bossData.profiles
           ? bossData.profiles
           : null
       };

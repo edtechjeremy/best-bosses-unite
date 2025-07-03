@@ -72,7 +72,10 @@ export const Admin = () => {
       // Transform the data to ensure proper typing and handle null profiles
       const transformedNominations: Nomination[] = (nominationsData || []).map(nomination => ({
         ...nomination,
-        profiles: nomination.profiles && typeof nomination.profiles === 'object' && 'first_name' in nomination.profiles
+        profiles: nomination.profiles && 
+                  typeof nomination.profiles === 'object' && 
+                  nomination.profiles !== null &&
+                  'first_name' in nomination.profiles
           ? nomination.profiles
           : null
       }));
