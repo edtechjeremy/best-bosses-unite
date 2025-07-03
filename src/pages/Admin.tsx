@@ -46,12 +46,13 @@ export const Admin = () => {
         .from('nominations')
         .select(`
           *,
-          profiles!nominations_nominator_id_fkey (
+          profiles!inner(
             first_name,
             last_name,
             email
           )
         `)
+        .eq('profiles.user_id', 'nominations.nominator_id')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
