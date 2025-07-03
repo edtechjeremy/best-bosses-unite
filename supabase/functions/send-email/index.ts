@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 import { createClient } from 'npm:@supabase/supabase-js@2';
@@ -82,9 +81,6 @@ const handler = async (req: Request): Promise<Response> => {
         const bossLinkedinShareText = encodeURIComponent(`Happy to be nominated by ${data.nominatorName} as a #BestBoss.\n\nWho's a manager who made a big difference in your career?\n\n${data.bossProfileUrl}`);
         const bossLinkedinShareUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${bossLinkedinShareText}`;
         
-        // Create the direct certificate download URL using the new edge function
-        const certificateDownloadUrl = `${supabaseUrl.replace('/rest/v1', '')}/functions/v1/generate-certificate?firstName=${encodeURIComponent(data.bossFirstName)}&lastName=${encodeURIComponent(data.bossLastName)}`;
-        
         emailResponse = await resend.emails.send({
           from: "Best Bosses <info@bestbosses.org>",
           to: [to],
@@ -97,13 +93,11 @@ const handler = async (req: Request): Promise<Response> => {
             <p>At BestBosses.org (the internet's only verified manager review site), we fundamentally believe the best bosses deserve to be recognized - and to get the best talent on their teams.</p>
             <p>So be sure to share your award today:</p>
             <div style="margin: 20px 0;">
-              <p><strong>1) <a href="${certificateDownloadUrl}">Download Your Certificate</a></strong></p>
+              <p><strong>1) <a href="${bossLinkedinShareUrl}">Post on LinkedIn</a></strong></p>
               
-              <p><strong>2) <a href="${bossLinkedinShareUrl}">Post on LinkedIn</a></strong></p>
+              <p><strong>2) <a href="https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=Certified%20Best%20Boss&organizationId=99177270&issueYear=${new Date().getFullYear()}&issueMonth=${new Date().getMonth() + 1}&certUrl=${encodeURIComponent(data.bossProfileUrl)}">Add to LinkedIn Profile</a></strong></p>
               
-              <p><strong>3) <a href="https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=Certified%20Best%20Boss&organizationId=99177270&issueYear=${new Date().getFullYear()}&issueMonth=${new Date().getMonth() + 1}&certUrl=${encodeURIComponent(data.bossProfileUrl)}">Add to LinkedIn Profile</a></strong></p>
-              
-              <p><strong>4) <a href="mailto:?subject=Add to My Job Posting&body=Just forward this email to your recruiter:%0A%0ACan you please add the following bullet to our 'What We Offer' section:%0A%0AWork with a BestBosses.org-certified top manager. Learn more here: ${data.bossProfileUrl}">Add to a Job Posting</a></strong></p>
+              <p><strong>3) <a href="mailto:?subject=Add to My Job Posting&body=Just forward this email to your recruiter:%0A%0ACan you please add the following bullet to our 'What We Offer' section:%0A%0AWork with a BestBosses.org-certified top manager. Learn more here: ${data.bossProfileUrl}">Add to a Job Posting</a></strong></p>
             </div>
             <p>Congrats again! 🎉<br>-The Best Bosses Team</p>
           `,
