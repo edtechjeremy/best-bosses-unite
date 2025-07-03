@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -5,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Eye } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 interface Nomination {
   id: string;
@@ -25,6 +28,7 @@ interface Nomination {
     first_name: string;
     last_name: string;
     email: string;
+    linkedin_profile: string;
   } | null;
 }
 
@@ -32,6 +36,7 @@ export const Admin = () => {
   const [nominations, setNominations] = useState<Nomination[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [selectedNomination, setSelectedNomination] = useState<Nomination | null>(null);
   const { isAdmin, user } = useAuth();
   const { toast } = useToast();
 
@@ -42,7 +47,7 @@ export const Admin = () => {
 
   const fetchNominations = async () => {
     try {
-      // First get all nominations
+      // Get all nominations with nominator profiles
       const { data: nominationsData, error: nominationsError } = await supabase
         .from('nominations')
         .select('*')
@@ -50,11 +55,11 @@ export const Admin = () => {
 
       if (nominationsError) throw nominationsError;
 
-      // Then get profiles for all nominators
+      // Get profiles for all nominators
       const nominatorIds = nominationsData?.map(n => n.nominator_id) || [];
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('user_id, first_name, last_name, email')
+        .select('user_id, first_name, last_name, email, linkedin_profile')
         .in('user_id', nominatorIds);
 
       if (profilesError) throw profilesError;
@@ -81,7 +86,6 @@ export const Admin = () => {
   const handleApprove = async (nomination: Nomination) => {
     setActionLoading(nomination.id);
     try {
-      // First update the nomination status
       const { error } = await supabase
         .from('nominations')
         .update({ status: 'approved' })
@@ -210,92 +214,169 @@ export const Admin = () => {
           <p className="text-muted-foreground mt-2">Review and manage boss nominations</p>
         </div>
 
-        <div className="grid gap-6">
-          {nominations.map((nomination) => (
-            <Card key={nomination.id}>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-xl">
-                      {nomination.boss_first_name} {nomination.boss_last_name}
-                    </CardTitle>
-                    <CardDescription className="mt-1">
-                      {nomination.company} • {nomination.location}
-                    </CardDescription>
-                    <div className="flex gap-2 mt-2">
-                      <Badge variant="secondary">{nomination.industry}</Badge>
-                      <Badge variant="secondary">{nomination.function}</Badge>
-                    </div>
-                  </div>
-                  <Badge 
-                    variant={
-                      nomination.status === 'approved' ? 'default' :
-                      nomination.status === 'rejected' ? 'destructive' : 'secondary'
-                    }
-                  >
-                    {nomination.status}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <h4 className="font-medium mb-2">Contact Information</h4>
-                  <p className="text-sm text-muted-foreground">Email: {nomination.email}</p>
-                  <a 
-                    href={nomination.linkedin_profile} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-sm text-primary hover:underline inline-flex items-center gap-1"
-                  >
-                    LinkedIn Profile <ExternalLink className="w-3 h-3" />
-                  </a>
-                </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>All Nominations</CardTitle>
+            <CardDescription>
+              {nominations.length} total nominations
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Boss Name</TableHead>
+                  <TableHead>Company</TableHead>
+                  <TableHead>Industry</TableHead>
+                  <TableHead>Nominator</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {nominations.map((nomination) => (
+                  <TableRow key={nomination.id}>
+                    <TableCell className="font-medium">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button 
+                            variant="link" 
+                            className="p-0 h-auto text-left"
+                            onClick={() => setSelectedNomination(nomination)}
+                          >
+                            {nomination.boss_first_name} {nomination.boss_last_name}
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                          <DialogHeader>
+                            <DialogTitle>
+                              {selectedNomination?.boss_first_name} {selectedNomination?.boss_last_name}
+                            </DialogTitle>
+                            <DialogDescription>
+                              {selectedNomination?.company} • {selectedNomination?.location}
+                            </DialogDescription>
+                          </DialogHeader>
+                          {selectedNomination && (
+                            <div className="space-y-6">
+                              <div className="flex gap-2">
+                                <Badge variant="secondary">{selectedNomination.industry}</Badge>
+                                <Badge variant="secondary">{selectedNomination.function}</Badge>
+                              </div>
+                              
+                              <div>
+                                <h4 className="font-medium mb-2">Contact Information</h4>
+                                <p className="text-sm text-muted-foreground">Email: {selectedNomination.email}</p>
+                                <a 
+                                  href={selectedNomination.linkedin_profile} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-sm text-primary hover:underline inline-flex items-center gap-1"
+                                >
+                                  LinkedIn Profile <ExternalLink className="w-3 h-3" />
+                                </a>
+                              </div>
 
-                <div>
-                  <h4 className="font-medium mb-2">Review</h4>
-                  <p className="text-sm bg-muted p-3 rounded-lg">{nomination.review}</p>
-                </div>
+                              <div>
+                                <h4 className="font-medium mb-2">Review</h4>
+                                <p className="text-sm bg-muted p-3 rounded-lg">{selectedNomination.review}</p>
+                              </div>
 
-                <div>
-                  <h4 className="font-medium mb-2">Nominator</h4>
-                  <p className="text-sm text-muted-foreground">
-                    {nomination.profiles?.first_name} {nomination.profiles?.last_name} ({nomination.profiles?.email})
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Submitted: {new Date(nomination.created_at).toLocaleDateString()}
-                  </p>
-                </div>
+                              <div>
+                                <h4 className="font-medium mb-2">Nominator</h4>
+                                <p className="text-sm text-muted-foreground">
+                                  {selectedNomination.profiles?.first_name} {selectedNomination.profiles?.last_name} ({selectedNomination.profiles?.email})
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  Submitted: {new Date(selectedNomination.created_at).toLocaleDateString()}
+                                </p>
+                              </div>
 
-                {nomination.status === 'pending' && (
-                  <div className="flex gap-3 pt-4">
-                    <Button
-                      onClick={() => handleApprove(nomination)}
-                      disabled={actionLoading === nomination.id}
-                      variant="hero"
-                    >
-                      {actionLoading === nomination.id ? "Approving..." : "Approve"}
-                    </Button>
-                    <Button
-                      onClick={() => handleReject(nomination.id)}
-                      disabled={actionLoading === nomination.id}
-                      variant="destructive"
-                    >
-                      {actionLoading === nomination.id ? "Rejecting..." : "Reject"}
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
+                              {selectedNomination.status === 'pending' && (
+                                <div className="flex gap-3 pt-4">
+                                  <Button
+                                    onClick={() => handleApprove(selectedNomination)}
+                                    disabled={actionLoading === selectedNomination.id}
+                                    variant="hero"
+                                  >
+                                    {actionLoading === selectedNomination.id ? "Approving..." : "Approve"}
+                                  </Button>
+                                  <Button
+                                    onClick={() => handleReject(selectedNomination.id)}
+                                    disabled={actionLoading === selectedNomination.id}
+                                    variant="destructive"
+                                  >
+                                    {actionLoading === selectedNomination.id ? "Rejecting..." : "Reject"}
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </DialogContent>
+                      </Dialog>
+                    </TableCell>
+                    <TableCell>{nomination.company}</TableCell>
+                    <TableCell>{nomination.industry}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm">
+                          {nomination.profiles?.first_name} {nomination.profiles?.last_name}
+                        </span>
+                        {nomination.profiles?.linkedin_profile && (
+                          <a 
+                            href={nomination.profiles.linkedin_profile} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-primary hover:text-primary/80"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant={
+                          nomination.status === 'approved' ? 'default' :
+                          nomination.status === 'rejected' ? 'destructive' : 'secondary'
+                        }
+                      >
+                        {nomination.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {nomination.status === 'pending' && (
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => handleApprove(nomination)}
+                            disabled={actionLoading === nomination.id}
+                            variant="hero"
+                            size="sm"
+                          >
+                            {actionLoading === nomination.id ? "..." : "Approve"}
+                          </Button>
+                          <Button
+                            onClick={() => handleReject(nomination.id)}
+                            disabled={actionLoading === nomination.id}
+                            variant="destructive"
+                            size="sm"
+                          >
+                            {actionLoading === nomination.id ? "..." : "Reject"}
+                          </Button>
+                        </div>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
 
-          {nominations.length === 0 && (
-            <Card>
-              <CardContent className="text-center py-12">
+            {nominations.length === 0 && (
+              <div className="text-center py-12">
                 <p className="text-muted-foreground">No nominations found.</p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

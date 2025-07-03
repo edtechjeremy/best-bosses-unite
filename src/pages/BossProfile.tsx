@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -63,36 +64,76 @@ export const BossProfile = () => {
     try {
       console.log('Fetching boss with slug:', slug);
       
-      const { data, error } = await supabase
+      // First try to get the boss directly
+      const { data: bossData, error: bossError } = await supabase
         .from('bosses')
-        .select(`
-          *,
-          profiles!bosses_nominator_id_fkey (
-            first_name,
-            last_name,
-            linkedin_profile
-          )
-        `)
+        .select('*')
         .eq('slug', slug)
         .single();
 
-      console.log('Boss data result:', data);
-      console.log('Boss query error:', error);
+      if (bossError) {
+        console.error('Error fetching boss:', bossError);
+        
+        // If boss not found, try to get from nominations table using the slug pattern
+        // The slug format is: firstname-lastname-nominationid
+        const slugParts = slug?.split('-') || [];
+        if (slugParts.length >= 3) {
+          const nominationId = slugParts[slugParts.length - 1];
+          console.log('Trying to find nomination with ID:', nominationId);
+          
+          const { data: nominationData, error: nominationError } = await supabase
+            .from('nominations')
+            .select('*')
+            .eq('id', nominationId)
+            .eq('status', 'approved')
+            .single();
 
-      if (error) {
-        console.error('Error fetching boss:', error);
-        // If boss not found, try to find by a different slug format
-        if (error.code === 'PGRST116') {
-          // Boss not found with exact slug, let's check what bosses exist
-          const { data: allBosses } = await supabase
-            .from('bosses')
-            .select('slug, first_name, last_name');
-          console.log('All available boss slugs:', allBosses?.map(b => b.slug));
+          if (nominationData && !nominationError) {
+            console.log('Found nomination, creating boss object:', nominationData);
+            
+            // Get nominator profile
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('first_name, last_name, linkedin_profile')
+              .eq('user_id', nominationData.nominator_id)
+              .single();
+
+            // Create boss object from nomination data
+            const bossFromNomination = {
+              id: nominationData.id,
+              first_name: nominationData.boss_first_name,
+              last_name: nominationData.boss_last_name,
+              company: nominationData.company,
+              location: nominationData.location,
+              industry: nominationData.industry,
+              function: nominationData.function,
+              email: nominationData.email,
+              linkedin_profile: nominationData.linkedin_profile,
+              review: nominationData.review,
+              nominator_id: nominationData.nominator_id,
+              slug: slug!,
+              profiles: profileData || null
+            };
+            
+            setBoss(bossFromNomination);
+            return;
+          }
         }
-        throw error;
+        
+        throw bossError;
       }
       
-      setBoss(data as any);
+      // Get nominator profile for the boss
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, linkedin_profile')
+        .eq('user_id', bossData.nominator_id)
+        .single();
+
+      setBoss({
+        ...bossData,
+        profiles: profileData || null
+      });
     } catch (error) {
       console.error('Error fetching boss:', error);
     } finally {

@@ -7,9 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { SearchableSelect } from "@/components/SearchableSelect";
 
 const industries = [
   "Consulting", "Education", "Finance", "Government", "Healthcare", "Human Resources", 
@@ -233,33 +233,23 @@ export const Nominate = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="industry">Industry *</Label>
-                    <Select value={formData.industry} onValueChange={(value) => handleSelectChange("industry", value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select industry" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {industries.map(industry => (
-                          <SelectItem key={industry} value={industry}>
-                            {industry}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <SearchableSelect
+                      options={industries}
+                      value={formData.industry}
+                      onValueChange={(value) => handleSelectChange("industry", value)}
+                      placeholder="Select or search industry"
+                      searchPlaceholder="Search industries..."
+                    />
                   </div>
                   <div>
                     <Label htmlFor="function">Function *</Label>
-                    <Select value={formData.function} onValueChange={(value) => handleSelectChange("function", value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select function" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {functions.map(func => (
-                          <SelectItem key={func} value={func}>
-                            {func}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <SearchableSelect
+                      options={functions}
+                      value={formData.function}
+                      onValueChange={(value) => handleSelectChange("function", value)}
+                      placeholder="Select or search function"
+                      searchPlaceholder="Search functions..."
+                    />
                   </div>
                 </div>
 
