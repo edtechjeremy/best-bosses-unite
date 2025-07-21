@@ -67,9 +67,15 @@ export const Admin = () => {
         throw profilesError;
       }
 
+      console.log('Nominations data:', nominationsData);
+      console.log('Profiles data:', profilesData);
+
       // Combine the data
       const nominationsWithProfiles = nominationsData?.map(nomination => {
+        console.log('Looking for profile with user_id:', nomination.nominator_id);
         const profile = profilesData?.find(p => p.user_id === nomination.nominator_id);
+        console.log('Found profile:', profile);
+        
         return {
           ...nomination,
           profiles: profile ? {
@@ -81,7 +87,7 @@ export const Admin = () => {
         };
       }) || [];
 
-      console.log('Fetched nominations with profiles:', nominationsWithProfiles);
+      console.log('Final nominations with profiles:', nominationsWithProfiles);
       setNominations(nominationsWithProfiles);
     } catch (error) {
       console.error('Error fetching nominations:', error);
