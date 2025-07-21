@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -47,13 +46,12 @@ export const Admin = () => {
 
   const fetchNominations = async () => {
     try {
-      // Get all nominations with nominator profiles in a single query
+      // Get all nominations with nominator profiles using a simpler join syntax
       const { data: nominationsWithProfiles, error } = await supabase
         .from('nominations')
         .select(`
           *,
-          profiles!nominations_nominator_id_fkey (
-            user_id,
+          profiles:nominator_id (
             first_name,
             last_name,
             email,
