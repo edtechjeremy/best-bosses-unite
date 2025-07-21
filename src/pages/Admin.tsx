@@ -46,27 +46,43 @@ export const Admin = () => {
 
   const fetchNominations = async () => {
     try {
-      // Get all nominations with nominator profiles using a simpler join syntax
-      const { data: nominationsWithProfiles, error } = await supabase
+      // Get all nominations first
+      const { data: nominationsData, error: nominationsError } = await supabase
         .from('nominations')
-        .select(`
-          *,
-          profiles:nominator_id (
-            first_name,
-            last_name,
-            email,
-            linkedin_profile
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching nominations:', error);
-        throw error;
+      if (nominationsError) {
+        console.error('Error fetching nominations:', nominationsError);
+        throw nominationsError;
       }
 
+      // Get all profiles
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, first_name, last_name, email, linkedin_profile');
+
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        throw profilesError;
+      }
+
+      // Combine the data
+      const nominationsWithProfiles = nominationsData?.map(nomination => {
+        const profile = profilesData?.find(p => p.user_id === nomination.nominator_id);
+        return {
+          ...nomination,
+          profiles: profile ? {
+            first_name: profile.first_name,
+            last_name: profile.last_name,
+            email: profile.email,
+            linkedin_profile: profile.linkedin_profile
+          } : null
+        };
+      }) || [];
+
       console.log('Fetched nominations with profiles:', nominationsWithProfiles);
-      setNominations(nominationsWithProfiles || []);
+      setNominations(nominationsWithProfiles);
     } catch (error) {
       console.error('Error fetching nominations:', error);
       toast({
